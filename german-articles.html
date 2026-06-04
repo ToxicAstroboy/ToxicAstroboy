@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<title>Toxic Astroboy — Der · Die · Das Trainer</title>
+<style>
+  :root {
+    --bg: #0b0d1a;
+    --fg: #e7f6ff;
+    --accent: #6cffae;
+    --danger: #ff4d6d;
+    --coin: #ffd93d;
+    --der: #5cc8ff;   /* blue  */
+    --die: #ff7ab0;   /* pink  */
+    --das: #b48cff;   /* purple */
+    --panel: #11142a;
+    --line: #1c2140;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    min-height: 100%;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "Press Start 2P", ui-monospace, "Courier New", monospace;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 12px 32px;
+    touch-action: manipulation;
+  }
+
+  /* ---- top bar ---- */
+  #topbar {
+    width: 100%;
+    max-width: 520px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  #topbar .left { color: var(--accent); }
+  #topbar .streak { color: var(--coin); }
+  #restartBtn {
+    font: inherit;
+    font-size: 9px;
+    padding: 7px 10px;
+    background: transparent;
+    color: var(--danger);
+    border: 2px solid var(--danger);
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  #restartBtn:active { transform: translateY(1px); }
+
+  /* ---- progress ---- */
+  #progressWrap {
+    width: 100%;
+    max-width: 520px;
+  }
+  #progressMeta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 9px;
+    opacity: 0.7;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+  #progressBar {
+    height: 12px;
+    background: var(--line);
+    border: 2px solid #06070f;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  #progressFill {
+    height: 100%;
+    width: 0%;
+    background: var(--accent);
+    transition: width 0.25s ease;
+    image-rendering: pixelated;
+  }
+
+  /* ---- card ---- */
+  #card {
+    width: 100%;
+    max-width: 520px;
+    background: var(--panel);
+    border: 3px solid var(--line);
+    border-radius: 8px;
+    box-shadow: 0 0 0 4px #06070f, 0 12px 32px rgba(0,0,0,0.6);
+    padding: 26px 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 16px;
+  }
+  #prompt { font-size: 10px; opacity: 0.6; letter-spacing: 2px; text-transform: uppercase; }
+  #word {
+    font-size: 26px;
+    line-height: 1.3;
+    color: var(--fg);
+    word-break: break-word;
+  }
+  #word .blank { color: var(--accent); }
+  #translation { font-size: 11px; opacity: 0.75; line-height: 1.6; }
+
+  /* feedback / explain block (hidden until answered) */
+  #explain {
+    font-size: 10px;
+    line-height: 1.8;
+    border-top: 2px dashed var(--line);
+    padding-top: 14px;
+    margin-top: 2px;
+    display: none;
+    text-align: left;
+  }
+  #explain.show { display: block; }
+  #explain .verdict { font-size: 13px; letter-spacing: 1px; margin-bottom: 10px; text-transform: uppercase; }
+  #explain .verdict.right { color: var(--accent); }
+  #explain .verdict.wrong { color: var(--danger); }
+  #explain .row { margin: 8px 0; opacity: 0.92; }
+  #explain .lbl { color: var(--coin); }
+  #explain .de { color: var(--fg); }
+  #explain .en { opacity: 0.6; }
+  #explain .tip { color: var(--der); }
+
+  /* ---- answer buttons ---- */
+  #answers {
+    width: 100%;
+    max-width: 520px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+  }
+  .ansBtn {
+    font: inherit;
+    font-size: 16px;
+    padding: 20px 6px;
+    border: 3px solid;
+    border-radius: 6px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    background: #0e1124;
+    transition: transform 0.05s ease, background 0.1s ease;
+  }
+  .ansBtn[data-a="der"] { color: var(--der); border-color: var(--der); }
+  .ansBtn[data-a="die"] { color: var(--die); border-color: var(--die); }
+  .ansBtn[data-a="das"] { color: var(--das); border-color: var(--das); }
+  .ansBtn:active { transform: translateY(2px); }
+  .ansBtn[data-a="der"].fill { background: var(--der); color: #06121a; }
+  .ansBtn[data-a="die"].fill { background: var(--die); color: #06121a; }
+  .ansBtn[data-a="das"].fill { background: var(--das); color: #06121a; }
+  .ansBtn.correct { background: var(--accent); color: #06121a; border-color: var(--accent); }
+  .ansBtn.wrong { background: var(--danger); color: #fff; border-color: var(--danger); }
+  .ansBtn:disabled { cursor: default; opacity: 0.85; }
+
+  #nextBtn {
+    font: inherit;
+    font-size: 12px;
+    padding: 14px 22px;
+    background: var(--accent);
+    color: #06121a;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    display: none;
+  }
+  #nextBtn.show { display: inline-block; }
+  #nextBtn:active { transform: translateY(1px); }
+
+  #hint {
+    font-size: 9px;
+    opacity: 0.5;
+    letter-spacing: 1px;
+    text-align: center;
+    max-width: 520px;
+    line-height: 1.7;
+  }
+
+  /* ---- finish screen ---- */
+  #finish {
+    width: 100%;
+    max-width: 520px;
+    background: var(--panel);
+    border: 3px solid var(--accent);
+    border-radius: 8px;
+    box-shadow: 0 0 0 4px #06070f;
+    padding: 30px 22px;
+    text-align: center;
+    display: none;
+    flex-direction: column;
+    gap: 18px;
+  }
+  #finish.show { display: flex; }
+  #finish h1 { font-size: 18px; color: var(--accent); letter-spacing: 2px; }
+  #finish p { font-size: 11px; line-height: 1.9; }
+  #finish b { color: var(--coin); }
+  #finish button {
+    font: inherit;
+    font-size: 12px;
+    padding: 14px 22px;
+    background: var(--accent);
+    color: #06121a;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .flash-right { animation: flashR 0.4s; }
+  .flash-wrong { animation: flashW 0.4s; }
+  @keyframes flashR { 0% { box-shadow: 0 0 0 4px #06070f, 0 0 0 0 var(--accent); } 50% { box-shadow: 0 0 0 4px #06070f, 0 0 24px 4px var(--accent); } 100% { box-shadow: 0 0 0 4px #06070f, 0 12px 32px rgba(0,0,0,0.6); } }
+  @keyframes flashW { 0% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } 100% { transform: translateX(0); } }
+</style>
+</head>
+<body>
+
+  <div id="topbar">
+    <div class="left">DER · DIE · DAS</div>
+    <div class="streak" id="streak">🔥 0</div>
+    <button id="restartBtn">↺ Restart</button>
+  </div>
+
+  <div id="progressWrap">
+    <div id="progressMeta">
+      <span id="posLabel">Word 1 / 150</span>
+      <span id="accLabel">✓ 0 · ✗ 0</span>
+    </div>
+    <div id="progressBar"><div id="progressFill"></div></div>
+  </div>
+
+  <div id="card">
+    <div id="prompt">Which article?</div>
+    <div id="word">—</div>
+    <div id="translation"></div>
+    <div id="explain"></div>
+  </div>
+
+  <div id="answers">
+    <button class="ansBtn" data-a="der">der</button>
+    <button class="ansBtn" data-a="die">die</button>
+    <button class="ansBtn" data-a="das">das</button>
+  </div>
+
+  <button id="nextBtn">Next →</button>
+
+  <div id="finish">
+    <h1>Deck Complete! 🚀</h1>
+    <p id="finishStats"></p>
+    <button id="finishRestart">Start a new shuffle</button>
+  </div>
+
+  <div id="hint">Tap der / die / das &nbsp;·&nbsp; Keys: 1 = der, 2 = die, 3 = das &nbsp;·&nbsp; Progress saves automatically</div>
+
+<script>
+(() => {
+  "use strict";
+
+  // ---------------------------------------------------------------------------
+  // Word bank — 150 A2.1 German nouns (50 der · 50 die · 50 das)
+  // Each: word, article, en (translation), de (example sentence), ex (its translation), tip
+  // ---------------------------------------------------------------------------
+  const WORDS = [
+    // ---------- DER (masculine) ----------
+    { w:"Mann", a:"der", en:"man", de:"Der Mann liest eine Zeitung.", ex:"The man is reading a newspaper.", tip:"Male persons are almost always der." },
+    { w:"Hund", a:"der", en:"dog", de:"Der Hund schläft im Garten.", ex:"The dog is sleeping in the garden.", tip:"No rule — just memorise this one." },
+    { w:"Tisch", a:"der", en:"table", de:"Der Tisch ist aus Holz.", ex:"The table is made of wood.", tip:"No rule — memorise it." },
+    { w:"Stuhl", a:"der", en:"chair", de:"Der Stuhl steht am Fenster.", ex:"The chair is by the window.", tip:"No rule — memorise it." },
+    { w:"Apfel", a:"der", en:"apple", de:"Der Apfel ist rot und süß.", ex:"The apple is red and sweet.", tip:"No rule — memorise it." },
+    { w:"Tag", a:"der", en:"day", de:"Der Tag war sehr lang.", ex:"The day was very long.", tip:"Days & parts of the day (Tag, Morgen, Abend) are der." },
+    { w:"Montag", a:"der", en:"Monday", de:"Der Montag ist mein erster Arbeitstag.", ex:"Monday is my first work day.", tip:"All days of the week are der." },
+    { w:"Sommer", a:"der", en:"summer", de:"Der Sommer ist heiß in Spanien.", ex:"Summer is hot in Spain.", tip:"All seasons are der (Frühling, Sommer, Herbst, Winter)." },
+    { w:"Winter", a:"der", en:"winter", de:"Der Winter ist kalt und dunkel.", ex:"Winter is cold and dark.", tip:"All seasons are der." },
+    { w:"Computer", a:"der", en:"computer", de:"Der Computer ist ganz neu.", ex:"The computer is brand new.", tip:"Most -er nouns are der." },
+    { w:"Lehrer", a:"der", en:"teacher (m)", de:"Der Lehrer erklärt die Aufgabe.", ex:"The teacher explains the task.", tip:"-er agent nouns (the doer) are der." },
+    { w:"Bruder", a:"der", en:"brother", de:"Mein Bruder ist älter als ich.", ex:"My brother is older than me.", tip:"Male family members are der." },
+    { w:"Vater", a:"der", en:"father", de:"Der Vater kocht das Abendessen.", ex:"The father is cooking dinner.", tip:"Male family members are der." },
+    { w:"Wagen", a:"der", en:"car/cart", de:"Der Wagen fährt sehr schnell.", ex:"The car drives very fast.", tip:"Most -en nouns are der." },
+    { w:"Garten", a:"der", en:"garden", de:"Der Garten ist groß und grün.", ex:"The garden is big and green.", tip:"Most -en nouns are der." },
+    { w:"Schlüssel", a:"der", en:"key", de:"Der Schlüssel liegt auf dem Tisch.", ex:"The key is on the table.", tip:"Most -el nouns are der." },
+    { w:"Löffel", a:"der", en:"spoon", de:"Der Löffel ist noch sauber.", ex:"The spoon is still clean.", tip:"Most -el nouns are der." },
+    { w:"Kaffee", a:"der", en:"coffee", de:"Der Kaffee ist noch heiß.", ex:"The coffee is still hot.", tip:"No rule — memorise it." },
+    { w:"Saft", a:"der", en:"juice", de:"Der Saft schmeckt sehr süß.", ex:"The juice tastes very sweet.", tip:"No rule — memorise it." },
+    { w:"Wein", a:"der", en:"wine", de:"Der Wein kommt aus Italien.", ex:"The wine comes from Italy.", tip:"Alcoholic drinks are often der (but das Bier!)." },
+    { w:"Zug", a:"der", en:"train", de:"Der Zug fährt um acht Uhr ab.", ex:"The train leaves at eight o'clock.", tip:"No rule — memorise it." },
+    { w:"Bus", a:"der", en:"bus", de:"Der Bus kommt heute zu spät.", ex:"The bus is late today.", tip:"No rule — memorise it." },
+    { w:"Flughafen", a:"der", en:"airport", de:"Der Flughafen ist weit weg.", ex:"The airport is far away.", tip:"From der Hafen — most -en nouns are der." },
+    { w:"Bahnhof", a:"der", en:"train station", de:"Der Bahnhof ist im Zentrum.", ex:"The station is in the centre.", tip:"From der Hof — memorise it." },
+    { w:"Schrank", a:"der", en:"cupboard/wardrobe", de:"Der Schrank ist schon voll.", ex:"The wardrobe is already full.", tip:"No rule — memorise it." },
+    { w:"Fernseher", a:"der", en:"TV set", de:"Der Fernseher ist leider kaputt.", ex:"The TV is unfortunately broken.", tip:"Most -er nouns are der." },
+    { w:"Kühlschrank", a:"der", en:"fridge", de:"Der Kühlschrank ist fast leer.", ex:"The fridge is almost empty.", tip:"From der Schrank — keeps its gender." },
+    { w:"Brief", a:"der", en:"letter", de:"Der Brief kommt aus Berlin.", ex:"The letter comes from Berlin.", tip:"No rule — memorise it." },
+    { w:"Name", a:"der", en:"name", de:"Der Name ist schwer zu schreiben.", ex:"The name is hard to write.", tip:"A weak masculine noun (der Name, des Namens)." },
+    { w:"Freund", a:"der", en:"friend (m)", de:"Mein Freund wohnt in Köln.", ex:"My friend lives in Cologne.", tip:"Male persons are der." },
+    { w:"Arzt", a:"der", en:"doctor (m)", de:"Der Arzt ist heute sehr nett.", ex:"The doctor is very nice today.", tip:"Male persons are der (female: die Ärztin)." },
+    { w:"Markt", a:"der", en:"market", de:"Der Markt ist jeden Samstag.", ex:"The market is every Saturday.", tip:"No rule — memorise it." },
+    { w:"Preis", a:"der", en:"price/prize", de:"Der Preis ist viel zu hoch.", ex:"The price is far too high.", tip:"No rule — memorise it." },
+    { w:"Beruf", a:"der", en:"profession", de:"Was ist dein Beruf?", ex:"What is your profession?", tip:"No rule — memorise it." },
+    { w:"Urlaub", a:"der", en:"vacation", de:"Der Urlaub war einfach toll.", ex:"The holiday was simply great.", tip:"No rule — memorise it." },
+    { w:"Regen", a:"der", en:"rain", de:"Der Regen hört nicht auf.", ex:"The rain doesn't stop.", tip:"Most -en nouns are der." },
+    { w:"Schnee", a:"der", en:"snow", de:"Der Schnee ist ganz weiß.", ex:"The snow is completely white.", tip:"No rule — memorise it." },
+    { w:"Wind", a:"der", en:"wind", de:"Der Wind ist heute sehr stark.", ex:"The wind is very strong today.", tip:"Weather words like Wind, Regen, Schnee are der." },
+    { w:"Norden", a:"der", en:"north", de:"Im Norden ist es oft kalt.", ex:"In the north it is often cold.", tip:"Compass directions are der." },
+    { w:"Süden", a:"der", en:"south", de:"Im Süden ist es meistens warm.", ex:"In the south it is mostly warm.", tip:"Compass directions are der." },
+    { w:"Fuß", a:"der", en:"foot", de:"Der Fuß tut mir weh.", ex:"My foot hurts.", tip:"No rule — memorise it." },
+    { w:"Kopf", a:"der", en:"head", de:"Der Kopf tut mir weh.", ex:"My head hurts.", tip:"No rule — memorise it." },
+    { w:"Arm", a:"der", en:"arm", de:"Der Arm ist leider gebrochen.", ex:"The arm is unfortunately broken.", tip:"No rule — memorise it." },
+    { w:"Bauch", a:"der", en:"belly", de:"Mein Bauch ist jetzt voll.", ex:"My belly is full now.", tip:"No rule — memorise it." },
+    { w:"Rücken", a:"der", en:"back (body)", de:"Mein Rücken schmerzt am Morgen.", ex:"My back hurts in the morning.", tip:"Most -en nouns are der." },
+    { w:"Fisch", a:"der", en:"fish", de:"Der Fisch schwimmt im See.", ex:"The fish swims in the lake.", tip:"No rule — memorise it." },
+    { w:"Vogel", a:"der", en:"bird", de:"Der Vogel singt am Morgen.", ex:"The bird sings in the morning.", tip:"Most -el nouns are der." },
+    { w:"Baum", a:"der", en:"tree", de:"Der Baum ist schon sehr alt.", ex:"The tree is already very old.", tip:"No rule — memorise it." },
+    { w:"Berg", a:"der", en:"mountain", de:"Der Berg ist sehr hoch.", ex:"The mountain is very high.", tip:"No rule — memorise it." },
+    { w:"See", a:"der", en:"lake", de:"Der See ist tief und kalt.", ex:"The lake is deep and cold.", tip:"der See = lake, but die See = sea! Watch out." },
+
+    // ---------- DIE (feminine) ----------
+    { w:"Frau", a:"die", en:"woman", de:"Die Frau arbeitet im Büro.", ex:"The woman works in the office.", tip:"Female persons are almost always die." },
+    { w:"Katze", a:"die", en:"cat", de:"Die Katze schläft auf dem Sofa.", ex:"The cat sleeps on the sofa.", tip:"Most -e nouns are die." },
+    { w:"Lampe", a:"die", en:"lamp", de:"Die Lampe ist sehr hell.", ex:"The lamp is very bright.", tip:"Most -e nouns are die." },
+    { w:"Tür", a:"die", en:"door", de:"Die Tür ist noch offen.", ex:"The door is still open.", tip:"No rule — memorise it." },
+    { w:"Schule", a:"die", en:"school", de:"Die Schule beginnt um acht.", ex:"School starts at eight.", tip:"Most -e nouns are die." },
+    { w:"Straße", a:"die", en:"street", de:"Die Straße ist lang und breit.", ex:"The street is long and wide.", tip:"Most -e nouns are die." },
+    { w:"Stadt", a:"die", en:"city", de:"Die Stadt ist alt und schön.", ex:"The city is old and beautiful.", tip:"No rule — memorise (plural: die Städte)." },
+    { w:"Wohnung", a:"die", en:"apartment", de:"Die Wohnung ist klein, aber schön.", ex:"The apartment is small but nice.", tip:"All -ung nouns are die." },
+    { w:"Zeitung", a:"die", en:"newspaper", de:"Die Zeitung liegt auf dem Tisch.", ex:"The newspaper is on the table.", tip:"All -ung nouns are die." },
+    { w:"Übung", a:"die", en:"exercise", de:"Die Übung ist wirklich leicht.", ex:"The exercise is really easy.", tip:"All -ung nouns are die." },
+    { w:"Wand", a:"die", en:"wall (interior)", de:"Die Wand ist weiß gestrichen.", ex:"The wall is painted white.", tip:"No rule — memorise it." },
+    { w:"Küche", a:"die", en:"kitchen", de:"Die Küche ist sehr modern.", ex:"The kitchen is very modern.", tip:"Most -e nouns are die." },
+    { w:"Familie", a:"die", en:"family", de:"Die Familie ist sehr groß.", ex:"The family is very big.", tip:"Most -ie nouns are die." },
+    { w:"Mutter", a:"die", en:"mother", de:"Die Mutter liest ein Buch.", ex:"The mother is reading a book.", tip:"Female family members are die." },
+    { w:"Schwester", a:"die", en:"sister", de:"Meine Schwester ist noch jung.", ex:"My sister is still young.", tip:"Female family members are die." },
+    { w:"Tochter", a:"die", en:"daughter", de:"Die Tochter spielt im Garten.", ex:"The daughter plays in the garden.", tip:"Female family members are die." },
+    { w:"Freundin", a:"die", en:"friend (f)", de:"Meine Freundin kommt morgen.", ex:"My friend (f) is coming tomorrow.", tip:"All -in (female persons) are die." },
+    { w:"Lehrerin", a:"die", en:"teacher (f)", de:"Die Lehrerin ist sehr freundlich.", ex:"The teacher (f) is very friendly.", tip:"All -in nouns are die." },
+    { w:"Ärztin", a:"die", en:"doctor (f)", de:"Die Ärztin hilft mir gern.", ex:"The doctor (f) gladly helps me.", tip:"All -in nouns are die." },
+    { w:"Arbeit", a:"die", en:"work", de:"Die Arbeit ist heute anstrengend.", ex:"The work is exhausting today.", tip:"No rule — memorise it." },
+    { w:"Zeit", a:"die", en:"time", de:"Die Zeit vergeht sehr schnell.", ex:"Time passes very quickly.", tip:"No rule — memorise it." },
+    { w:"Woche", a:"die", en:"week", de:"Die Woche war ziemlich lang.", ex:"The week was quite long.", tip:"Most -e nouns are die." },
+    { w:"Stunde", a:"die", en:"hour", de:"Die Stunde dauert sehr lange.", ex:"The lesson/hour lasts very long.", tip:"Most -e nouns are die." },
+    { w:"Minute", a:"die", en:"minute", de:"Eine Minute, bitte!", ex:"One minute, please!", tip:"Most -e nouns are die." },
+    { w:"Nacht", a:"die", en:"night", de:"Die Nacht ist dunkel und still.", ex:"The night is dark and quiet.", tip:"No rule — memorise (plural: die Nächte)." },
+    { w:"Sonne", a:"die", en:"sun", de:"Die Sonne scheint heute hell.", ex:"The sun shines brightly today.", tip:"Most -e nouns are die." },
+    { w:"Blume", a:"die", en:"flower", de:"Die Blume ist rot und schön.", ex:"The flower is red and beautiful.", tip:"Most -e nouns are die." },
+    { w:"Milch", a:"die", en:"milk", de:"Die Milch ist noch kalt.", ex:"The milk is still cold.", tip:"No rule — memorise it." },
+    { w:"Butter", a:"die", en:"butter", de:"Die Butter ist ganz weich.", ex:"The butter is very soft.", tip:"Feminine in standard German — memorise it." },
+    { w:"Suppe", a:"die", en:"soup", de:"Die Suppe ist sehr heiß.", ex:"The soup is very hot.", tip:"Most -e nouns are die." },
+    { w:"Kartoffel", a:"die", en:"potato", de:"Die Kartoffel ist schon gekocht.", ex:"The potato is already cooked.", tip:"Most -el nouns are der, but this one is die — memorise it!" },
+    { w:"Banane", a:"die", en:"banana", de:"Die Banane ist noch grün.", ex:"The banana is still green.", tip:"Most -e nouns are die." },
+    { w:"Flasche", a:"die", en:"bottle", de:"Die Flasche ist schon leer.", ex:"The bottle is already empty.", tip:"Most -e nouns are die." },
+    { w:"Tasse", a:"die", en:"cup", de:"Die Tasse ist randvoll.", ex:"The cup is full to the brim.", tip:"Most -e nouns are die." },
+    { w:"Gabel", a:"die", en:"fork", de:"Die Gabel ist aus Metall.", ex:"The fork is made of metal.", tip:"Exception: -el here is die — memorise it." },
+    { w:"Hand", a:"die", en:"hand", de:"Die Hand ist ganz kalt.", ex:"The hand is completely cold.", tip:"No rule — memorise (plural: die Hände)." },
+    { w:"Nase", a:"die", en:"nose", de:"Die Nase ist ganz rot.", ex:"The nose is all red.", tip:"Most -e nouns are die." },
+    { w:"Frage", a:"die", en:"question", de:"Die Frage ist wirklich schwer.", ex:"The question is really hard.", tip:"Most -e nouns are die." },
+    { w:"Antwort", a:"die", en:"answer", de:"Die Antwort ist genau richtig.", ex:"The answer is exactly right.", tip:"No rule — memorise it." },
+    { w:"Sprache", a:"die", en:"language", de:"Die Sprache ist sehr schön.", ex:"The language is very beautiful.", tip:"Most -e nouns are die." },
+    { w:"Reise", a:"die", en:"trip/journey", de:"Die Reise war lang, aber schön.", ex:"The journey was long but nice.", tip:"Most -e nouns are die." },
+    { w:"Karte", a:"die", en:"card/ticket/map", de:"Die Karte ist leider teuer.", ex:"The ticket is unfortunately expensive.", tip:"Most -e nouns are die." },
+    { w:"Brille", a:"die", en:"glasses", de:"Die Brille ist ganz neu.", ex:"The glasses are brand new.", tip:"Most -e nouns are die." },
+    { w:"Uhr", a:"die", en:"clock/watch", de:"Die Uhr ist leider kaputt.", ex:"The clock is unfortunately broken.", tip:"No rule — memorise it." },
+    { w:"Tasche", a:"die", en:"bag", de:"Die Tasche ist sehr schwer.", ex:"The bag is very heavy.", tip:"Most -e nouns are die." },
+    { w:"Hose", a:"die", en:"trousers", de:"Die Hose ist dunkelblau.", ex:"The trousers are dark blue.", tip:"Most -e nouns are die." },
+    { w:"Jacke", a:"die", en:"jacket", de:"Die Jacke ist schön warm.", ex:"The jacket is nice and warm.", tip:"Most -e nouns are die." },
+    { w:"Gesundheit", a:"die", en:"health", de:"Die Gesundheit ist am wichtigsten.", ex:"Health is the most important thing.", tip:"All -heit nouns are die." },
+    { w:"Freiheit", a:"die", en:"freedom", de:"Die Freiheit ist sehr wichtig.", ex:"Freedom is very important.", tip:"All -heit nouns are die." },
+    { w:"Information", a:"die", en:"information", de:"Die Information ist ganz neu.", ex:"The information is brand new.", tip:"All -ion nouns are die." },
+
+    // ---------- DAS (neuter) ----------
+    { w:"Kind", a:"das", en:"child", de:"Das Kind spielt im Park.", ex:"The child is playing in the park.", tip:"No rule — memorise it." },
+    { w:"Haus", a:"das", en:"house", de:"Das Haus ist alt und groß.", ex:"The house is old and big.", tip:"No rule — memorise (plural: die Häuser)." },
+    { w:"Auto", a:"das", en:"car", de:"Das Auto ist knallrot.", ex:"The car is bright red.", tip:"Most -o nouns are das." },
+    { w:"Buch", a:"das", en:"book", de:"Das Buch ist sehr interessant.", ex:"The book is very interesting.", tip:"No rule — memorise (plural: die Bücher)." },
+    { w:"Fenster", a:"das", en:"window", de:"Das Fenster ist weit offen.", ex:"The window is wide open.", tip:"-er, but this one is das — memorise it." },
+    { w:"Bett", a:"das", en:"bed", de:"Das Bett ist sehr bequem.", ex:"The bed is very comfortable.", tip:"No rule — memorise it." },
+    { w:"Zimmer", a:"das", en:"room", de:"Das Zimmer ist schön sauber.", ex:"The room is nice and clean.", tip:"-er, but this one is das — memorise it." },
+    { w:"Wasser", a:"das", en:"water", de:"Das Wasser ist eiskalt.", ex:"The water is ice cold.", tip:"-er, but this one is das — memorise it." },
+    { w:"Brot", a:"das", en:"bread", de:"Das Brot ist noch ganz frisch.", ex:"The bread is still quite fresh.", tip:"No rule — memorise it." },
+    { w:"Ei", a:"das", en:"egg", de:"Das Ei ist weich gekocht.", ex:"The egg is soft-boiled.", tip:"No rule — memorise (plural: die Eier)." },
+    { w:"Obst", a:"das", en:"fruit", de:"Das Obst ist sehr gesund.", ex:"Fruit is very healthy.", tip:"No rule — memorise it." },
+    { w:"Gemüse", a:"das", en:"vegetables", de:"Das Gemüse ist ganz frisch.", ex:"The vegetables are quite fresh.", tip:"Most Ge- collective nouns are das." },
+    { w:"Fleisch", a:"das", en:"meat", de:"Das Fleisch ist ziemlich teuer.", ex:"The meat is quite expensive.", tip:"No rule — memorise it." },
+    { w:"Bier", a:"das", en:"beer", de:"Das Bier ist schön kalt.", ex:"The beer is nice and cold.", tip:"Most drinks are der, but Bier is das — memorise it!" },
+    { w:"Glas", a:"das", en:"glass", de:"Das Glas ist randvoll.", ex:"The glass is full to the brim.", tip:"No rule — memorise it." },
+    { w:"Messer", a:"das", en:"knife", de:"Das Messer ist sehr scharf.", ex:"The knife is very sharp.", tip:"-er, but this one is das — memorise it." },
+    { w:"Telefon", a:"das", en:"telephone", de:"Das Telefon klingelt schon wieder.", ex:"The telephone is ringing again.", tip:"No rule — memorise it." },
+    { w:"Handy", a:"das", en:"cell phone", de:"Das Handy ist ganz neu.", ex:"The cell phone is brand new.", tip:"No rule — memorise it." },
+    { w:"Geld", a:"das", en:"money", de:"Das Geld ist leider weg.", ex:"The money is unfortunately gone.", tip:"No rule — memorise it." },
+    { w:"Jahr", a:"das", en:"year", de:"Das Jahr war wirklich gut.", ex:"The year was really good.", tip:"No rule — memorise (plural: die Jahre)." },
+    { w:"Wochenende", a:"das", en:"weekend", de:"Das Wochenende war sehr schön.", ex:"The weekend was very nice.", tip:"From das Ende — memorise it." },
+    { w:"Wetter", a:"das", en:"weather", de:"Das Wetter ist heute schlecht.", ex:"The weather is bad today.", tip:"-er, but this one is das — memorise it." },
+    { w:"Land", a:"das", en:"country", de:"Das Land ist groß und schön.", ex:"The country is big and beautiful.", tip:"No rule — memorise (plural: die Länder)." },
+    { w:"Meer", a:"das", en:"sea", de:"Das Meer ist tiefblau.", ex:"The sea is deep blue.", tip:"das Meer = sea (compare der See = lake)." },
+    { w:"Kino", a:"das", en:"cinema", de:"Das Kino ist heute voll.", ex:"The cinema is full today.", tip:"Most -o nouns are das." },
+    { w:"Restaurant", a:"das", en:"restaurant", de:"Das Restaurant ist sehr teuer.", ex:"The restaurant is very expensive.", tip:"No rule — memorise it." },
+    { w:"Hotel", a:"das", en:"hotel", de:"Das Hotel ist modern und sauber.", ex:"The hotel is modern and clean.", tip:"No rule — memorise it." },
+    { w:"Büro", a:"das", en:"office", de:"Das Büro ist hell und groß.", ex:"The office is bright and big.", tip:"Most -o nouns are das." },
+    { w:"Krankenhaus", a:"das", en:"hospital", de:"Das Krankenhaus ist ganz neu.", ex:"The hospital is brand new.", tip:"From das Haus — keeps its gender." },
+    { w:"Auge", a:"das", en:"eye", de:"Das Auge ist hellblau.", ex:"The eye is light blue.", tip:"Exception: -e but neuter (das Auge) — memorise it!" },
+    { w:"Ohr", a:"das", en:"ear", de:"Das Ohr tut mir weh.", ex:"My ear hurts.", tip:"No rule — memorise it." },
+    { w:"Bein", a:"das", en:"leg", de:"Das Bein ist lang und schlank.", ex:"The leg is long and slim.", tip:"No rule — memorise it." },
+    { w:"Herz", a:"das", en:"heart", de:"Das Herz schlägt sehr schnell.", ex:"The heart beats very fast.", tip:"No rule — memorise it." },
+    { w:"Gesicht", a:"das", en:"face", de:"Das Gesicht ist sehr freundlich.", ex:"The face is very friendly.", tip:"Many Ge- nouns are das." },
+    { w:"Haar", a:"das", en:"hair", de:"Das Haar ist lang und glatt.", ex:"The hair is long and straight.", tip:"No rule — memorise it." },
+    { w:"Mädchen", a:"das", en:"girl", de:"Das Mädchen lacht laut.", ex:"The girl laughs loudly.", tip:"All -chen diminutives are das (even for people!)." },
+    { w:"Brötchen", a:"das", en:"bread roll", de:"Das Brötchen ist noch warm.", ex:"The bread roll is still warm.", tip:"All -chen diminutives are das." },
+    { w:"Tier", a:"das", en:"animal", de:"Das Tier ist ziemlich groß.", ex:"The animal is quite big.", tip:"No rule — memorise it." },
+    { w:"Pferd", a:"das", en:"horse", de:"Das Pferd ist sehr schnell.", ex:"The horse is very fast.", tip:"No rule — memorise it." },
+    { w:"Foto", a:"das", en:"photo", de:"Das Foto ist wirklich schön.", ex:"The photo is really nice.", tip:"Most -o nouns are das." },
+    { w:"Bild", a:"das", en:"picture", de:"Das Bild ist sehr alt.", ex:"The picture is very old.", tip:"No rule — memorise (plural: die Bilder)." },
+    { w:"Wort", a:"das", en:"word", de:"Das Wort ist neu für mich.", ex:"The word is new to me.", tip:"No rule — memorise it." },
+    { w:"Beispiel", a:"das", en:"example", de:"Das Beispiel ist sehr gut.", ex:"The example is very good.", tip:"No rule — memorise it." },
+    { w:"Problem", a:"das", en:"problem", de:"Das Problem ist ziemlich groß.", ex:"The problem is quite big.", tip:"No rule — memorise it." },
+    { w:"Spiel", a:"das", en:"game", de:"Das Spiel macht echt Spaß.", ex:"The game is really fun.", tip:"No rule — memorise it." },
+    { w:"Geschenk", a:"das", en:"gift", de:"Das Geschenk ist sehr schön.", ex:"The gift is very nice.", tip:"Many Ge- nouns are das." },
+    { w:"Papier", a:"das", en:"paper", de:"Das Papier ist ganz weiß.", ex:"The paper is completely white.", tip:"No rule — memorise it." },
+    { w:"Heft", a:"das", en:"notebook", de:"Das Heft ist noch leer.", ex:"The notebook is still empty.", tip:"No rule — memorise it." },
+    { w:"Essen", a:"das", en:"food/meal", de:"Das Essen ist sehr lecker.", ex:"The food is very tasty.", tip:"Verbs used as nouns (das Essen) are das." },
+    { w:"Leben", a:"das", en:"life", de:"Das Leben ist schön.", ex:"Life is beautiful.", tip:"Verbs used as nouns (das Leben) are das." },
+  ];
+
+  const STORAGE_KEY = "astroboy_articles_v1";
+  const N = WORDS.length;
+
+  // ---------------------------------------------------------------------------
+  // Shuffle helpers — produce an order where no two neighbours share an article
+  // ---------------------------------------------------------------------------
+  function fisherYates(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  // Greedy interleave: always take the article-bucket with the most cards left
+  // that is different from the previously placed one. With balanced buckets this
+  // guarantees der/die/das never appear twice in a row.
+  function buildShuffledOrder() {
+    const buckets = { der: [], die: [], das: [] };
+    WORDS.forEach((word, idx) => buckets[word.a].push(idx));
+    fisherYates(buckets.der);
+    fisherYates(buckets.die);
+    fisherYates(buckets.das);
+
+    const order = [];
+    let last = null;
+    while (buckets.der.length + buckets.die.length + buckets.das.length > 0) {
+      // candidate buckets that aren't the last article and aren't empty
+      let candidates = ["der", "die", "das"]
+        .filter(k => k !== last && buckets[k].length > 0);
+      // fallback: if only the last-article bucket remains, we must use it
+      if (candidates.length === 0) {
+        candidates = ["der", "die", "das"].filter(k => buckets[k].length > 0);
+      }
+      // pick the fullest candidate bucket to keep counts balanced
+      candidates.sort((a, b) => buckets[b].length - buckets[a].length);
+      const pick = candidates[0];
+      order.push(buckets[pick].pop());
+      last = pick;
+    }
+    return order;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Persistence
+  // ---------------------------------------------------------------------------
+  function loadSession() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      const s = JSON.parse(raw);
+      if (!Array.isArray(s.order) || s.order.length !== N) return null; // word bank changed
+      return s;
+    } catch (e) { return null; }
+  }
+  function saveSession() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(session)); } catch (e) {}
+  }
+  function newSession() {
+    return { order: buildShuffledOrder(), pos: 0, correct: 0, wrong: 0, streak: 0, bestStreak: 0 };
+  }
+
+  let session = loadSession() || newSession();
+  saveSession();
+
+  // ---------------------------------------------------------------------------
+  // DOM
+  // ---------------------------------------------------------------------------
+  const el = {
+    word: document.getElementById("word"),
+    translation: document.getElementById("translation"),
+    explain: document.getElementById("explain"),
+    streak: document.getElementById("streak"),
+    posLabel: document.getElementById("posLabel"),
+    accLabel: document.getElementById("accLabel"),
+    fill: document.getElementById("progressFill"),
+    card: document.getElementById("card"),
+    answers: document.getElementById("answers"),
+    next: document.getElementById("nextBtn"),
+    finish: document.getElementById("finish"),
+    finishStats: document.getElementById("finishStats"),
+  };
+  const ansBtns = Array.from(document.querySelectorAll(".ansBtn"));
+
+  let answered = false;
+
+  function currentWord() {
+    return WORDS[session.order[session.pos]];
+  }
+
+  function renderProgress() {
+    el.posLabel.textContent = `Word ${Math.min(session.pos + 1, N)} / ${N}`;
+    el.accLabel.textContent = `✓ ${session.correct} · ✗ ${session.wrong}`;
+    el.streak.textContent = `🔥 ${session.streak}`;
+    el.fill.style.width = `${(session.pos / N) * 100}%`;
+  }
+
+  function renderCard() {
+    answered = false;
+    const word = currentWord();
+    el.word.innerHTML = `<span class="blank">___</span> ${word.w}`;
+    el.translation.textContent = `(${word.en})`;
+    el.explain.className = "";
+    el.explain.innerHTML = "";
+    el.next.className = "";
+    ansBtns.forEach(b => {
+      b.disabled = false;
+      b.className = "ansBtn";
+    });
+    renderProgress();
+  }
+
+  function answer(choice) {
+    if (answered) return;
+    answered = true;
+    const word = currentWord();
+    const right = choice === word.a;
+
+    ansBtns.forEach(b => {
+      b.disabled = true;
+      if (b.dataset.a === word.a) b.classList.add("correct");
+      else if (b.dataset.a === choice) b.classList.add("wrong");
+    });
+
+    if (right) {
+      session.correct++;
+      session.streak++;
+      session.bestStreak = Math.max(session.bestStreak, session.streak);
+      el.card.classList.add("flash-right");
+    } else {
+      session.wrong++;
+      session.streak = 0;
+      el.card.classList.add("flash-wrong");
+    }
+    setTimeout(() => el.card.classList.remove("flash-right", "flash-wrong"), 420);
+
+    const verdict = right
+      ? `<div class="verdict right">✓ Richtig!</div>`
+      : `<div class="verdict wrong">✗ It's «${word.a} ${word.w}»</div>`;
+
+    el.explain.innerHTML = `
+      ${verdict}
+      <div class="row"><span class="de">${word.de}</span></div>
+      <div class="row en">${word.ex}</div>
+      <div class="row"><span class="lbl">💡 Tip:</span> <span class="tip">${word.tip}</span></div>
+    `;
+    el.explain.classList.add("show");
+    el.next.classList.add("show");
+    el.next.textContent = session.pos + 1 >= N ? "See results →" : "Next →";
+
+    renderProgress();
+    saveSession();
+  }
+
+  function next() {
+    if (!answered) return;
+    session.pos++;
+    saveSession();
+    if (session.pos >= N) {
+      showFinish();
+    } else {
+      renderCard();
+    }
+  }
+
+  function showFinish() {
+    el.card.style.display = "none";
+    el.answers.style.display = "none";
+    el.next.classList.remove("show");
+    document.getElementById("progressWrap").style.display = "none";
+    el.fill.style.width = "100%";
+    const total = session.correct + session.wrong;
+    const pct = total ? Math.round((session.correct / total) * 100) : 0;
+    el.finishStats.innerHTML =
+      `You answered <b>${session.correct}/${total}</b> correctly (<b>${pct}%</b>).<br/>` +
+      `Best streak: <b>🔥 ${session.bestStreak}</b><br/><br/>` +
+      (pct >= 90 ? "Outstanding — you've got the articles down! 🌟" :
+       pct >= 70 ? "Solid work! A quick re-shuffle will lock it in. 💪" :
+                   "Good start — run it again and watch your score climb! 🚀");
+    el.finish.classList.add("show");
+  }
+
+  function restart(confirmFirst) {
+    if (confirmFirst && !confirm("Restart from the beginning with a fresh shuffle? Your current progress will be lost.")) return;
+    session = newSession();
+    saveSession();
+    el.card.style.display = "";
+    el.answers.style.display = "";
+    document.getElementById("progressWrap").style.display = "";
+    el.finish.classList.remove("show");
+    renderCard();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Events
+  // ---------------------------------------------------------------------------
+  ansBtns.forEach(b => b.addEventListener("click", () => answer(b.dataset.a)));
+  el.next.addEventListener("click", next);
+  document.getElementById("restartBtn").addEventListener("click", () => restart(true));
+  document.getElementById("finishRestart").addEventListener("click", () => restart(false));
+
+  addEventListener("keydown", (e) => {
+    if (e.key === "1") answer("der");
+    else if (e.key === "2") answer("die");
+    else if (e.key === "3") answer("das");
+    else if (e.key === "Enter" || e.key === " ") { if (answered) { e.preventDefault(); next(); } }
+  });
+
+  // ---------------------------------------------------------------------------
+  // Boot — resume where the user left off (or finish screen if deck was done)
+  // ---------------------------------------------------------------------------
+  if (session.pos >= N) showFinish();
+  else renderCard();
+})();
+</script>
+</body>
+</html>
