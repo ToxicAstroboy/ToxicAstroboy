@@ -119,6 +119,22 @@
   #word .blank { color: var(--accent); }
   #translation { font-size: 11px; opacity: 0.75; line-height: 1.6; }
 
+  #speakBtn {
+    font: inherit;
+    font-size: 14px;
+    align-self: center;
+    padding: 8px 14px;
+    background: transparent;
+    color: var(--coin);
+    border: 2px solid var(--coin);
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 1px;
+  }
+  #speakBtn:active { transform: translateY(1px); }
+  #speakBtn.speaking { background: var(--coin); color: #06121a; }
+  #speakBtn[hidden] { display: none; }
+
   /* feedback / explain block (hidden until answered) */
   #explain {
     font-size: 10px;
@@ -251,6 +267,7 @@
     <div id="prompt">Which article?</div>
     <div id="word">—</div>
     <div id="translation"></div>
+    <button id="speakBtn" title="Hear it">🔊 Hören</button>
     <div id="explain"></div>
   </div>
 
@@ -265,10 +282,11 @@
   <div id="finish">
     <h1>Deck Complete! 🚀</h1>
     <p id="finishStats"></p>
+    <button id="finishReview" hidden>Review my mistakes</button>
     <button id="finishRestart">Start a new shuffle</button>
   </div>
 
-  <div id="hint">Tap der / die / das &nbsp;·&nbsp; Keys: 1 = der, 2 = die, 3 = das &nbsp;·&nbsp; Progress saves automatically</div>
+  <div id="hint">Tap der / die / das &nbsp;·&nbsp; Keys: 1 = der, 2 = die, 3 = das &nbsp;·&nbsp; 🔊 hear it spoken &nbsp;·&nbsp; missed words go to a review round &nbsp;·&nbsp; progress saves automatically</div>
 
 <script>
 (() => {
@@ -453,9 +471,10 @@
   // Greedy interleave: always take the article-bucket with the most cards left
   // that is different from the previously placed one. With balanced buckets this
   // guarantees der/die/das never appear twice in a row.
-  function buildShuffledOrder() {
+  function buildShuffledOrder(indices) {
+    const pool = indices || WORDS.map((_, i) => i);
     const buckets = { der: [], die: [], das: [] };
-    WORDS.forEach((word, idx) => buckets[word.a].push(idx));
+    pool.forEach(idx => buckets[WORDS[idx].a].push(idx));
     fisherYates(buckets.der);
     fisherYates(buckets.die);
     fisherYates(buckets.das);
@@ -487,15 +506,21 @@
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return null;
       const s = JSON.parse(raw);
-      if (!Array.isArray(s.order) || s.order.length !== N) return null; // word bank changed
+      if (!Array.isArray(s.order)) return null;
+      if (!s.isReview && s.order.length !== N) return null; // word bank changed
+      if (!Array.isArray(s.mistakes)) s.mistakes = [];
       return s;
     } catch (e) { return null; }
   }
   function saveSession() {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(session)); } catch (e) {}
   }
-  function newSession() {
-    return { order: buildShuffledOrder(), pos: 0, correct: 0, wrong: 0, streak: 0, bestStreak: 0 };
+  function newSession(indices, isReview) {
+    return {
+      order: buildShuffledOrder(indices),
+      pos: 0, correct: 0, wrong: 0, streak: 0, bestStreak: 0,
+      mistakes: [], isReview: !!isReview,
+    };
   }
 
   let session = loadSession() || newSession();
@@ -517,20 +542,45 @@
     next: document.getElementById("nextBtn"),
     finish: document.getElementById("finish"),
     finishStats: document.getElementById("finishStats"),
+    speak: document.getElementById("speakBtn"),
+    review: document.getElementById("finishReview"),
   };
   const ansBtns = Array.from(document.querySelectorAll(".ansBtn"));
 
   let answered = false;
+
+  // ---- Speech (browser-native, offline, no library) -------------------------
+  const canSpeak = "speechSynthesis" in window;
+  if (!canSpeak) el.speak.hidden = true;
+  function speak(text) {
+    if (!canSpeak) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "de-DE";
+    u.rate = 0.85;
+    const de = speechSynthesis.getVoices().find(v => v.lang && v.lang.toLowerCase().startsWith("de"));
+    if (de) u.voice = de;
+    el.speak.classList.add("speaking");
+    u.onend = u.onerror = () => el.speak.classList.remove("speaking");
+    speechSynthesis.speak(u);
+  }
+  // Before answering, say only the noun (no article spoiler); after, the full phrase.
+  function speakCurrent() {
+    const word = currentWord();
+    speak(answered ? `${word.a} ${word.w}` : word.w);
+  }
 
   function currentWord() {
     return WORDS[session.order[session.pos]];
   }
 
   function renderProgress() {
-    el.posLabel.textContent = `Word ${Math.min(session.pos + 1, N)} / ${N}`;
+    const deckLen = session.order.length;
+    const label = session.isReview ? "Review" : "Word";
+    el.posLabel.textContent = `${label} ${Math.min(session.pos + 1, deckLen)} / ${deckLen}`;
     el.accLabel.textContent = `✓ ${session.correct} · ✗ ${session.wrong}`;
     el.streak.textContent = `🔥 ${session.streak}`;
-    el.fill.style.width = `${(session.pos / N) * 100}%`;
+    el.fill.style.width = `${(session.pos / deckLen) * 100}%`;
   }
 
   function renderCard() {
@@ -541,6 +591,8 @@
     el.explain.className = "";
     el.explain.innerHTML = "";
     el.next.className = "";
+    el.speak.classList.remove("speaking");
+    el.speak.textContent = "🔊 Hören";
     ansBtns.forEach(b => {
       b.disabled = false;
       b.className = "ansBtn";
@@ -552,6 +604,7 @@
     if (answered) return;
     answered = true;
     const word = currentWord();
+    const wordIdx = session.order[session.pos];
     const right = choice === word.a;
 
     ansBtns.forEach(b => {
@@ -568,9 +621,12 @@
     } else {
       session.wrong++;
       session.streak = 0;
+      if (!session.mistakes.includes(wordIdx)) session.mistakes.push(wordIdx);
       el.card.classList.add("flash-wrong");
     }
     setTimeout(() => el.card.classList.remove("flash-right", "flash-wrong"), 420);
+
+    el.speak.textContent = "🔊 " + word.a + " " + word.w;
 
     const verdict = right
       ? `<div class="verdict right">✓ Richtig!</div>`
@@ -584,7 +640,7 @@
     `;
     el.explain.classList.add("show");
     el.next.classList.add("show");
-    el.next.textContent = session.pos + 1 >= N ? "See results →" : "Next →";
+    el.next.textContent = session.pos + 1 >= session.order.length ? "See results →" : "Next →";
 
     renderProgress();
     saveSession();
@@ -594,7 +650,7 @@
     if (!answered) return;
     session.pos++;
     saveSession();
-    if (session.pos >= N) {
+    if (session.pos >= session.order.length) {
       showFinish();
     } else {
       renderCard();
@@ -609,24 +665,43 @@
     el.fill.style.width = "100%";
     const total = session.correct + session.wrong;
     const pct = total ? Math.round((session.correct / total) * 100) : 0;
+    const missed = session.mistakes.length;
     el.finishStats.innerHTML =
-      `You answered <b>${session.correct}/${total}</b> correctly (<b>${pct}%</b>).<br/>` +
+      `${session.isReview ? "Review round — " : ""}you answered <b>${session.correct}/${total}</b> correctly (<b>${pct}%</b>).<br/>` +
       `Best streak: <b>🔥 ${session.bestStreak}</b><br/><br/>` +
-      (pct >= 90 ? "Outstanding — you've got the articles down! 🌟" :
-       pct >= 70 ? "Solid work! A quick re-shuffle will lock it in. 💪" :
-                   "Good start — run it again and watch your score climb! 🚀");
+      (missed === 0 ? "Flawless — not a single miss! 🌟" :
+       pct >= 70 ? `Solid work! You missed <b>${missed}</b> word${missed > 1 ? "s" : ""} — review them to lock it in. 💪` :
+                   `Good effort — <b>${missed}</b> word${missed > 1 ? "s" : ""} to review, then run it again! 🚀`);
+
+    if (missed > 0) {
+      el.review.hidden = false;
+      el.review.textContent = `Review my ${missed} mistake${missed > 1 ? "s" : ""}`;
+    } else {
+      el.review.hidden = true;
+    }
     el.finish.classList.add("show");
+  }
+
+  function showDeck() {
+    el.card.style.display = "";
+    el.answers.style.display = "";
+    document.getElementById("progressWrap").style.display = "";
+    el.finish.classList.remove("show");
+    renderCard();
   }
 
   function restart(confirmFirst) {
     if (confirmFirst && !confirm("Restart from the beginning with a fresh shuffle? Your current progress will be lost.")) return;
     session = newSession();
     saveSession();
-    el.card.style.display = "";
-    el.answers.style.display = "";
-    document.getElementById("progressWrap").style.display = "";
-    el.finish.classList.remove("show");
-    renderCard();
+    showDeck();
+  }
+
+  function reviewMistakes() {
+    if (!session.mistakes.length) return;
+    session = newSession(session.mistakes.slice(), true);
+    saveSession();
+    showDeck();
   }
 
   // ---------------------------------------------------------------------------
@@ -636,6 +711,8 @@
   el.next.addEventListener("click", next);
   document.getElementById("restartBtn").addEventListener("click", () => restart(true));
   document.getElementById("finishRestart").addEventListener("click", () => restart(false));
+  el.review.addEventListener("click", reviewMistakes);
+  el.speak.addEventListener("click", speakCurrent);
 
   addEventListener("keydown", (e) => {
     if (e.key === "1") answer("der");
@@ -647,7 +724,7 @@
   // ---------------------------------------------------------------------------
   // Boot — resume where the user left off (or finish screen if deck was done)
   // ---------------------------------------------------------------------------
-  if (session.pos >= N) showFinish();
+  if (session.pos >= session.order.length) showFinish();
   else renderCard();
 })();
 </script>
