@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Konjunktiv II — Lernkarten</title>
+<style>
+  :root {
+    --bg: #0b0d1a;
+    --fg: #e7f6ff;
+    --accent: #6cffae;
+    --danger: #ff4d6d;
+    --coin: #ffd93d;
+    --panel: #11142a;
+    --line: #1c2140;
+    --line2: #2a335f;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    min-height: 100%;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "Press Start 2P", ui-monospace, "Courier New", monospace;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 12px 40px;
+  }
+  header {
+    width: 100%;
+    max-width: 560px;
+    text-align: center;
+    padding-top: 6px;
+  }
+  h1 {
+    font-size: 16px;
+    letter-spacing: 2px;
+    color: var(--accent);
+    line-height: 1.5;
+  }
+  .subtitle {
+    margin-top: 8px;
+    font-size: 9px;
+    opacity: 0.6;
+    letter-spacing: 1px;
+    line-height: 1.6;
+  }
+
+  /* category filter */
+  #filters {
+    width: 100%;
+    max-width: 560px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+  }
+  .chip {
+    font: inherit;
+    font-size: 8px;
+    letter-spacing: 0.5px;
+    padding: 7px 9px;
+    background: var(--panel);
+    color: var(--fg);
+    border: 2px solid var(--line);
+    border-radius: 4px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: transform 0.05s;
+  }
+  .chip:active { transform: translateY(1px); }
+  .chip.active {
+    background: var(--accent);
+    color: #06121a;
+    border-color: var(--accent);
+  }
+
+  /* progress */
+  #progress {
+    width: 100%;
+    max-width: 560px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 9px;
+    letter-spacing: 1px;
+    opacity: 0.85;
+  }
+  #progress .known { color: var(--accent); }
+
+  #bar {
+    width: 100%;
+    max-width: 560px;
+    height: 6px;
+    background: var(--line);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  #barFill {
+    height: 100%;
+    width: 0%;
+    background: var(--accent);
+    transition: width 0.25s;
+  }
+
+  /* card */
+  #cardWrap {
+    width: 100%;
+    max-width: 560px;
+    perspective: 1200px;
+  }
+  #card {
+    position: relative;
+    width: 100%;
+    min-height: 300px;
+    cursor: pointer;
+    transform-style: preserve-3d;
+    transition: transform 0.45s;
+  }
+  #card.flipped { transform: rotateY(180deg); }
+  .face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 24px 20px;
+    background: var(--panel);
+    border: 3px solid var(--line);
+    border-radius: 8px;
+    box-shadow: 0 0 0 4px #06070f, 0 12px 32px rgba(0,0,0,0.55);
+    text-align: center;
+  }
+  .face .tag {
+    position: absolute;
+    top: 10px;
+    left: 12px;
+    font-size: 7px;
+    letter-spacing: 1px;
+    color: var(--coin);
+    text-transform: uppercase;
+    opacity: 0.85;
+  }
+  .face .side {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    font-size: 7px;
+    letter-spacing: 1px;
+    opacity: 0.4;
+    text-transform: uppercase;
+  }
+  .front-face .prompt {
+    font-size: 13px;
+    line-height: 1.9;
+    color: var(--fg);
+  }
+  .front-face .hintline {
+    font-size: 8px;
+    opacity: 0.45;
+    letter-spacing: 1px;
+  }
+  .back-face {
+    transform: rotateY(180deg);
+    justify-content: flex-start;
+    padding-top: 34px;
+  }
+  .back-face .answer {
+    font-size: 12px;
+    line-height: 1.9;
+    color: var(--accent);
+  }
+  .back-face .explain {
+    font-size: 11px;
+    line-height: 1.95;
+    color: var(--fg);
+    opacity: 0.95;
+  }
+  .back-face .english {
+    font-size: 9px;
+    line-height: 1.8;
+    color: #8fa0d6;
+    opacity: 0.85;
+    border-top: 1px dashed var(--line2);
+    padding-top: 12px;
+    margin-top: 4px;
+    display: none;
+  }
+  .back-face .english.show { display: block; }
+  .enBtn {
+    font: inherit;
+    font-size: 8px;
+    letter-spacing: 0.5px;
+    padding: 6px 10px;
+    background: transparent;
+    color: #8fa0d6;
+    border: 1px solid var(--line2);
+    border-radius: 4px;
+    cursor: pointer;
+    text-transform: uppercase;
+  }
+  .enBtn:active { transform: translateY(1px); }
+
+  /* controls */
+  #controls {
+    width: 100%;
+    max-width: 560px;
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  button.ctrl {
+    font: inherit;
+    font-size: 10px;
+    padding: 12px 14px;
+    background: var(--panel);
+    color: var(--fg);
+    border: 2px solid var(--line);
+    border-radius: 5px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    flex: 1 1 0;
+    min-width: 70px;
+  }
+  button.ctrl:active { transform: translateY(1px); }
+  button.ctrl.primary {
+    background: var(--accent);
+    color: #06121a;
+    border-color: var(--accent);
+  }
+
+  #marks {
+    width: 100%;
+    max-width: 560px;
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+  }
+  button.mark {
+    font: inherit;
+    font-size: 9px;
+    padding: 11px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    flex: 1 1 0;
+    border: 2px solid var(--line);
+    background: var(--panel);
+    color: var(--fg);
+  }
+  button.mark:active { transform: translateY(1px); }
+  button.mark.got { border-color: var(--accent); color: var(--accent); }
+  button.mark.again { border-color: var(--danger); color: var(--danger); }
+
+  #hint {
+    font-size: 8px;
+    opacity: 0.5;
+    letter-spacing: 1px;
+    text-align: center;
+    line-height: 1.9;
+    max-width: 560px;
+  }
+  #hint a, footer a { color: var(--accent); text-decoration: none; }
+  footer {
+    font-size: 8px;
+    opacity: 0.6;
+    letter-spacing: 1px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Konjunktiv II<br/>Lernkarten</h1>
+    <div class="subtitle">
+      Erklärungen auf einfachem Deutsch · Englisch nur als Hilfe<br/>
+      Karte tippen zum Umdrehen
+    </div>
+  </header>
+
+  <div id="filters"></div>
+
+  <div id="progress">
+    <span id="count">Karte 1 / 100</span>
+    <span class="known" id="known">✓ 0 gelernt</span>
+  </div>
+  <div id="bar"><div id="barFill"></div></div>
+
+  <div id="cardWrap">
+    <div id="card">
+      <div class="face front-face">
+        <span class="tag" id="frontTag"></span>
+        <span class="side">Frage</span>
+        <div class="prompt" id="frontText"></div>
+        <div class="hintline">Tippen oder Leertaste zum Umdrehen</div>
+      </div>
+      <div class="face back-face">
+        <span class="tag" id="backTag"></span>
+        <span class="side">Antwort</span>
+        <div class="answer" id="backAnswer"></div>
+        <div class="explain" id="backExplain"></div>
+        <button class="enBtn" id="enBtn" type="button">🇬🇧 Englisch zeigen</button>
+        <div class="english" id="backEnglish"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="marks">
+    <button class="mark again" id="againBtn" type="button">↻ Nochmal üben</button>
+    <button class="mark got" id="gotBtn" type="button">✓ Verstanden</button>
+  </div>
+
+  <div id="controls">
+    <button class="ctrl" id="prevBtn" type="button">◀ Zurück</button>
+    <button class="ctrl primary" id="flipBtn" type="button">Umdrehen</button>
+    <button class="ctrl" id="nextBtn" type="button">Weiter ▶</button>
+    <button class="ctrl" id="shuffleBtn" type="button">⤮ Mischen</button>
+  </div>
+
+  <div id="hint">
+    Tasten: ← → blättern · Leertaste/↑ umdrehen · S mischen · G verstanden · N nochmal
+  </div>
+
+  <footer>
+    <a href="index.html">← Zurück zum Spiel</a> · <span id="resetBtn" style="cursor:pointer;text-decoration:underline;">Fortschritt löschen</span>
+  </footer>
+
+<script>
+(() => {
+  // ---- Card data -----------------------------------------------------------
+  // { front: German question, back: German answer, explain: simple German,
+  //   en: optional English fallback, cat: category }
+  const CARDS = [
+    // ---------- Bildung ----------
+    { cat:"Bildung", front:"Was ist der Konjunktiv II?", back:"Eine Form für etwas Unwirkliches.", explain:"Er zeigt etwas, das nicht real ist: Wünsche, Träume und höfliche Bitten.", en:"Konjunktiv II expresses unreal/hypothetical things, wishes and polite requests." },
+    { cat:"Bildung", front:"Wie bildet man den Konjunktiv II am einfachsten?", back:"Mit „würde“ + Infinitiv.", explain:"Beispiel: „Ich würde gehen.“ Das ist die leichteste Form.", en:"Easiest form: würde + infinitive, e.g. „Ich würde gehen“ (I would go)." },
+    { cat:"Bildung", front:"Woher kommt die echte (kurze) Form?", back:"Vom Präteritum.", explain:"Man nimmt den Präteritum-Stamm und macht oft einen Umlaut: a→ä, o→ö, u→ü.", en:"The real short form is built from the past-tense stem, often adding an umlaut." },
+    { cat:"Bildung", front:"Welche Endungen hat der Konjunktiv II?", back:"-e, -est, -e, -en, -et, -en", explain:"Beispiel mit „käme“: ich käme, du kämest, er käme, wir kämen, ihr kämet, sie kämen.", en:"Endings: -e, -est, -e, -en, -et, -en." },
+    { cat:"Bildung", front:"Wann nimmt man lieber „würde“?", back:"Bei vielen schwachen Verben.", explain:"„Ich würde fragen“ klingt besser als „ich fragte“. So gibt es keine Verwechslung mit dem Präteritum.", en:"Use würde with weak verbs to avoid confusion with the simple past." },
+    { cat:"Bildung", front:"Konjunktiv II von „machen“?", back:"würde machen", explain:"Die Form „machte“ nutzt man fast nie, weil sie wie Präteritum klingt. Besser: „Ich würde das machen.“", en:"machen → würde machen ('machte' sounds like the past tense)." },
+    { cat:"Bildung", front:"Bei welchen Verben nimmt man gern die kurze Form?", back:"sein, haben, werden und Modalverben.", explain:"Also: wäre, hätte, würde, könnte, müsste, sollte, dürfte.", en:"Short forms are common with sein, haben, werden and the modal verbs." },
+    { cat:"Bildung", front:"Was zeigt der Umlaut im Konjunktiv II?", back:"Es ist Konjunktiv, nicht Präteritum.", explain:"„Ich kam“ ist Vergangenheit. „Ich käme“ ist Konjunktiv II.", en:"The umlaut marks the subjunctive: 'kam' (came) vs 'käme' (would come)." },
+    { cat:"Bildung", front:"Konjunktiv II von „fahren“ (kurze Form)?", back:"führe", explain:"Stamm „fuhr“ wird zu „führ-“. Beispiel: „Ich führe nach Berlin.“ Oft sagt man auch „würde fahren“.", en:"fahren → führe (or würde fahren)." },
+    { cat:"Bildung", front:"Warum ist der Konjunktiv II wichtig?", back:"Man braucht ihn jeden Tag.", explain:"Für höfliche Sätze, für „wenn“-Sätze und für Wünsche. Ohne ihn klingt man oft zu direkt.", en:"Essential for politeness, conditional sentences and wishes." },
+    { cat:"Bildung", front:"Unterschied: Präteritum oder Konjunktiv II?", back:"„hatte“ ist real, „hätte“ ist unwirklich.", explain:"„Ich hatte Zeit“ = Vergangenheit. „Ich hätte Zeit“ = unwirklich. Der Umlaut macht den Unterschied.", en:"'hatte' (real past) vs 'hätte' (would have, unreal)." },
+    { cat:"Bildung", front:"Kann man „würde“ und die kurze Form mischen?", back:"Ja, sehr oft.", explain:"Kurze Form bei haben/sein/Modalverben, „würde“ bei anderen: „Wenn ich Zeit hätte, würde ich kommen.“", en:"Yes — short form for haben/sein/modals, würde for other verbs." },
+
+    // ---------- Wichtige Verben ----------
+    { cat:"Verben", front:"Konjunktiv II von „sein“ – ich?", back:"ich wäre", explain:"Beispiel: „Ich wäre gern reich.“ Bedeutung: Ich bin es nicht, aber ich wünsche es.", en:"sein: ich wäre (I would be)." },
+    { cat:"Verben", front:"Konjugiere „sein“ im Konjunktiv II.", back:"wäre · wärst · wäre · wären · wärt · wären", explain:"ich wäre, du wärst, er/sie/es wäre, wir wären, ihr wärt, sie/Sie wären.", en:"sein conjugation in Konjunktiv II." },
+    { cat:"Verben", front:"Konjunktiv II von „haben“ – ich?", back:"ich hätte", explain:"Beispiel: „Ich hätte gern einen Kaffee.“ Das ist eine höfliche Bitte.", en:"haben: ich hätte (I'd have / I'd like)." },
+    { cat:"Verben", front:"Konjugiere „haben“ im Konjunktiv II.", back:"hätte · hättest · hätte · hätten · hättet · hätten", explain:"ich hätte, du hättest, er/sie/es hätte, wir hätten, ihr hättet, sie/Sie hätten.", en:"haben conjugation in Konjunktiv II." },
+    { cat:"Verben", front:"Konjunktiv II von „werden“ – ich?", back:"ich würde", explain:"Mit „würde“ bildet man auch andere Verben: „Ich würde spielen.“", en:"werden: ich würde (also the helper: würde + infinitive)." },
+    { cat:"Verben", front:"Konjugiere „werden“ im Konjunktiv II.", back:"würde · würdest · würde · würden · würdet · würden", explain:"ich würde, du würdest, er/sie/es würde, wir würden, ihr würdet, sie/Sie würden.", en:"werden conjugation in Konjunktiv II." },
+    { cat:"Verben", front:"„Ich ___ gern ein Eis.“ (haben)", back:"Ich hätte gern ein Eis.", explain:"So bestellt man höflich im Café oder Geschäft.", en:"Ich hätte gern… = I'd like… (polite ordering)." },
+    { cat:"Verben", front:"„Das ___ schön.“ (sein)", back:"Das wäre schön.", explain:"Bedeutung: Jetzt ist es nicht so, aber ich finde die Idee gut.", en:"Das wäre schön = That would be nice." },
+    { cat:"Verben", front:"Wie sagt man höflich „Ich will Wasser“?", back:"Ich hätte gern Wasser. / Ich möchte Wasser.", explain:"„Ich will“ klingt zu hart. Der Konjunktiv II ist freundlicher.", en:"Use 'Ich hätte gern…' or 'Ich möchte…' instead of the blunt 'Ich will…'." },
+    { cat:"Verben", front:"„Wir ___ mehr Zeit.“ (haben, Wunsch)", back:"Wir hätten mehr Zeit.", explain:"Der Wunsch: Wir haben die Zeit nicht, aber wir wollen sie.", en:"Wir hätten mehr Zeit = We'd have more time (a wish)." },
+    { cat:"Verben", front:"„___ du so nett?“ (sein, Bitte)", back:"Wärst du so nett?", explain:"Eine sehr höfliche Bitte, oft so: „Wärst du so nett und hilfst mir?“", en:"Wärst du so nett…? = Would you be so kind…?" },
+    { cat:"Verben", front:"Welche drei Verben sind am wichtigsten?", back:"wäre, hätte, würde", explain:"Mit diesen drei Wörtern bildet man die meisten Sätze. Lerne sie zuerst!", en:"wäre, hätte, würde — learn these three first." },
+
+    // ---------- Modalverben ----------
+    { cat:"Modalverben", front:"Konjunktiv II von „können“ – ich?", back:"ich könnte", explain:"Beispiel: „Könntest du mir helfen?“ – eine höfliche Bitte.", en:"können → könnte (could)." },
+    { cat:"Modalverben", front:"Konjunktiv II von „müssen“ – ich?", back:"ich müsste", explain:"Beispiel: „Ich müsste eigentlich lernen.“ Bedeutung: Es ist nötig, aber vielleicht tue ich es nicht.", en:"müssen → müsste (would have to)." },
+    { cat:"Modalverben", front:"Konjunktiv II von „dürfen“ – ich?", back:"ich dürfte", explain:"Beispiel: „Dürfte ich kurz stören?“ – sehr höflich um Erlaubnis fragen.", en:"dürfen → dürfte (might / would be allowed)." },
+    { cat:"Modalverben", front:"Konjunktiv II von „sollen“ – ich?", back:"ich sollte", explain:"Beispiel: „Du solltest mehr schlafen.“ Das ist ein Ratschlag (ein guter Tipp).", en:"sollen → sollte (should — advice)." },
+    { cat:"Modalverben", front:"Konjunktiv II von „wollen“ – ich?", back:"ich wollte (kein Umlaut!)", explain:"Achtung: „wollte“ ist gleich wie das Präteritum. Es gibt keinen Umlaut.", en:"wollen → wollte (no umlaut, same as past tense)." },
+    { cat:"Modalverben", front:"Konjunktiv II von „mögen“ – ich?", back:"ich möchte", explain:"Beispiel: „Ich möchte einen Tee.“ Das ist die höfliche Form von „ich will“.", en:"mögen → möchte (would like)." },
+    { cat:"Modalverben", front:"Konjugiere „können“ im Konjunktiv II.", back:"könnte · könntest · könnte · könnten · könntet · könnten", explain:"ich könnte, du könntest, er/sie/es könnte, wir könnten, ihr könntet, sie/Sie könnten.", en:"können conjugation in Konjunktiv II." },
+    { cat:"Modalverben", front:"„___ Sie mir helfen?“ (können, höflich)", back:"Könnten Sie mir helfen?", explain:"„Könnten Sie?“ ist netter als „Können Sie?“.", en:"Könnten Sie mir helfen? = Could you help me?" },
+    { cat:"Modalverben", front:"„Du ___ zum Arzt gehen.“ (sollen, Rat)", back:"Du solltest zum Arzt gehen.", explain:"Mit „sollte“ gibt man einen Rat oder einen Tipp.", en:"Du solltest… = You should… (advice)." },
+    { cat:"Modalverben", front:"Welche Modalverben bekommen einen Umlaut?", back:"könnte, müsste, dürfte, möchte", explain:"Mit Umlaut: können, müssen, dürfen, mögen. Ohne Umlaut: sollte, wollte.", en:"Umlaut: könnte, müsste, dürfte, möchte. No umlaut: sollte, wollte." },
+    { cat:"Modalverben", front:"„Ich ___ jetzt eigentlich gehen.“ (müssen)", back:"Ich müsste jetzt eigentlich gehen.", explain:"Bedeutung: Es ist nötig, aber ich bin nicht sicher oder ich will nicht.", en:"Ich müsste… = I really ought to / should…" },
+    { cat:"Modalverben", front:"Wie macht man eine sehr höfliche Frage?", back:"Mit „Könnten/Dürfte/Würden“.", explain:"Beispiele: „Könnten Sie…?“, „Dürfte ich…?“, „Würden Sie…?“ So klingt man freundlich.", en:"Use Könnten/Dürfte/Würden for very polite questions." },
+
+    // ---------- Starke Verben ----------
+    { cat:"Starke Verben", front:"Konjunktiv II von „geben“?", back:"gäbe", explain:"Stamm „gab“ → „gäb-“. Beispiel: „Es gäbe viel zu tun.“", en:"geben → gäbe (would give)." },
+    { cat:"Starke Verben", front:"Konjunktiv II von „kommen“?", back:"käme", explain:"Stamm „kam“ → „käm-“. Beispiel: „Er käme gern, aber er hat keine Zeit.“", en:"kommen → käme (would come)." },
+    { cat:"Starke Verben", front:"Konjunktiv II von „gehen“?", back:"ginge", explain:"Stamm „ging“ → „ging-“. Beispiel: „Ich ginge jetzt lieber nach Hause.“", en:"gehen → ginge (would go)." },
+    { cat:"Starke Verben", front:"Konjunktiv II von „wissen“?", back:"wüsste", explain:"Stamm „wusste“ → „wüsst-“. Beispiel: „Wenn ich das nur wüsste!“", en:"wissen → wüsste (would know)." },
+    { cat:"Starke Verben", front:"Konjunktiv II von „tun“?", back:"täte", explain:"Beispiel: „Das täte ich nie!“ Bedeutung: Ich mache das auf keinen Fall.", en:"tun → täte (would do)." },
+    { cat:"Starke Verben", front:"Konjunktiv II von „finden“?", back:"fände", explain:"Stamm „fand“ → „fänd-“. Beispiel: „Ich fände das gut.“", en:"finden → fände (would find / think)." },
+    { cat:"Starke Verben", front:"Konjunktiv II von „bleiben“?", back:"bliebe", explain:"Stamm „blieb“ → „blieb-“. Beispiel: „Ich bliebe gern länger.“", en:"bleiben → bliebe (would stay)." },
+    { cat:"Starke Verben", front:"Konjunktiv II von „lassen“?", back:"ließe", explain:"Stamm „ließ“ → „ließ-“. Beispiel: „Ich ließe das so.“", en:"lassen → ließe (would let / leave)." },
+    { cat:"Starke Verben", front:"Konjunktiv II von „nehmen“?", back:"nähme", explain:"Stamm „nahm“ → „nähm-“. Beispiel: „Ich nähme lieber den Bus.“", en:"nehmen → nähme (would take)." },
+    { cat:"Starke Verben", front:"Konjunktiv II von „sehen“?", back:"sähe", explain:"Stamm „sah“ → „säh-“. Beispiel: „Ich sähe ihn gern wieder.“", en:"sehen → sähe (would see)." },
+    { cat:"Starke Verben", front:"Konjunktiv II von „stehen“?", back:"stünde (auch: stände)", explain:"Beispiel: „Das stünde dir gut.“ Beide Formen sind richtig.", en:"stehen → stünde/stände (would stand / suit)." },
+    { cat:"Starke Verben", front:"Konjunktiv II von „bringen“?", back:"brächte", explain:"Stamm „brachte“ → „brächt-“. Beispiel: „Ich brächte gern etwas mit.“", en:"bringen → brächte (would bring)." },
+    { cat:"Starke Verben", front:"Konjunktiv II von „fahren“?", back:"führe", explain:"Beispiel: „Ich führe lieber mit dem Zug.“ Nicht verwechseln mit „führen“.", en:"fahren → führe (would drive / go)." },
+    { cat:"Starke Verben", front:"Konjunktiv II von „helfen“?", back:"hülfe (oft: würde helfen)", explain:"Die Form „hülfe“ klingt alt. Heute sagt man lieber „würde helfen“.", en:"helfen → hülfe (today usually: würde helfen)." },
+    { cat:"Starke Verben", front:"Konjunktiv II von „essen“?", back:"äße", explain:"Stamm „aß“ → „äß-“. Beispiel: „Ich äße jetzt gern etwas.“", en:"essen → äße (would eat)." },
+    { cat:"Starke Verben", front:"Warum nutzt man oft „würde“ statt der kurzen Form?", back:"Manche kurze Formen klingen alt.", explain:"Wörter wie „hülfe“ oder „stürbe“ klingen altmodisch. Im Alltag sagt man „würde helfen“.", en:"Some old short forms sound archaic; spoken German prefers würde + infinitive." },
+
+    // ---------- Vergangenheit ----------
+    { cat:"Vergangenheit", front:"Wie bildet man den Konjunktiv II der Vergangenheit?", back:"hätte / wäre + Partizip II", explain:"Beispiele: „Ich hätte gemacht“, „Ich wäre gegangen“.", en:"Past Konjunktiv II = hätte/wäre + past participle." },
+    { cat:"Vergangenheit", front:"Wann nimmt man „wäre“ (nicht „hätte“)?", back:"Bei Bewegung und Veränderung.", explain:"Bei Verben wie gehen, kommen, fahren, bleiben, sein. Beispiel: „Ich wäre gekommen.“", en:"Use wäre with verbs of motion/change (gehen, kommen, bleiben, sein…)." },
+    { cat:"Vergangenheit", front:"„Ich ___ das gemacht.“ (Vergangenheit)", back:"Ich hätte das gemacht.", explain:"Bedeutung: In der Vergangenheit war es anders. Ich wünsche, ich hätte es getan.", en:"Ich hätte das gemacht = I would have done that." },
+    { cat:"Vergangenheit", front:"„Wenn ich Zeit gehabt hätte, ___ ich gekommen.“", back:"…wäre ich gekommen.", explain:"Ganzer Satz: „Wenn ich Zeit gehabt hätte, wäre ich gekommen.“", en:"…wäre ich gekommen = …I would have come." },
+    { cat:"Vergangenheit", front:"Was bedeutet „Ich hätte das nicht gesagt.“?", back:"Kritik oder Bedauern über die Vergangenheit.", explain:"Ich denke jetzt: Es war falsch. Aber es ist schon passiert.", en:"I wouldn't have said that — regret/criticism about the past." },
+    { cat:"Vergangenheit", front:"„Das ___ nicht passieren ___.“ (dürfen, Vergangenheit)", back:"Das hätte nicht passieren dürfen.", explain:"Bei Modalverben in der Vergangenheit: hätte + Infinitiv + Modal-Infinitiv.", en:"Das hätte nicht passieren dürfen = That shouldn't have happened." },
+    { cat:"Vergangenheit", front:"Konjunktiv II Vergangenheit mit Modalverb – wie?", back:"hätte + Infinitiv + Modal-Infinitiv", explain:"Beispiel: „Ich hätte kommen können.“ = Es war möglich, aber ich kam nicht.", en:"hätte + infinitive + modal-infinitive: 'Ich hätte kommen können' (I could have come)." },
+    { cat:"Vergangenheit", front:"„Du ___ mich anrufen ___.“ (sollen, Vergangenheit)", back:"Du hättest mich anrufen sollen.", explain:"Das ist eine Kritik über die Vergangenheit.", en:"Du hättest mich anrufen sollen = You should have called me." },
+    { cat:"Vergangenheit", front:"„Ich ___ fast gefallen.“ (sein, Vergangenheit)", back:"Ich wäre fast gefallen.", explain:"„fast“ zeigt: Es ist nicht passiert, aber es war sehr nah.", en:"Ich wäre fast gefallen = I almost fell." },
+    { cat:"Vergangenheit", front:"Wie sagt man Bedauern über die Vergangenheit?", back:"Mit „hätte/wäre … sollen/können“.", explain:"Beispiel: „Ich hätte mehr lernen sollen.“ Bedeutung: Ich bedauere es heute.", en:"Express regret with hätte … sollen: 'Ich hätte mehr lernen sollen.'" },
+    { cat:"Vergangenheit", front:"„Wir ___ fast den Zug verpasst.“ (haben)", back:"Wir hätten fast den Zug verpasst.", explain:"Es ist gut gegangen, aber es war knapp.", en:"Wir hätten fast den Zug verpasst = We almost missed the train." },
+    { cat:"Vergangenheit", front:"Konjunktiv II Vergangenheit von „sehen“ – ich?", back:"Ich hätte gesehen.", explain:"Beispiel: „Ich hätte den Film gern gesehen.“", en:"Ich hätte gesehen = I would have seen." },
+
+    // ---------- Gebrauch ----------
+    { cat:"Gebrauch", front:"Wie drückt man einen Wunsch aus?", back:"Mit „Ich wünschte, …“", explain:"Beispiel: „Ich wünschte, ich hätte mehr Geld.“ Der Wunsch ist nicht real.", en:"For wishes: 'Ich wünschte, ich hätte mehr Geld.'" },
+    { cat:"Gebrauch", front:"Wie macht man einen Wunsch stärker?", back:"Mit „wenn … nur“.", explain:"Beispiel: „Wenn ich nur mehr Zeit hätte!“ Das Wort „nur“ macht den Wunsch stärker.", en:"Wenn ich nur mehr Zeit hätte! = If only I had more time!" },
+    { cat:"Gebrauch", front:"Was ist ein irrealer Bedingungssatz?", back:"Ein „wenn“-Satz, der nicht real ist.", explain:"Beispiel: „Wenn ich reich wäre, würde ich reisen.“ Ich bin aber nicht reich.", en:"Unreal conditional: 'Wenn ich reich wäre, würde ich reisen.'" },
+    { cat:"Gebrauch", front:"„Wenn ich du ___, ___ ich das nicht machen.“", back:"…wäre, würde…", explain:"„Wenn ich du wäre, würde ich das nicht machen.“ So gibt man einen Rat.", en:"Wenn ich du wäre, würde ich… = If I were you, I would…" },
+    { cat:"Gebrauch", front:"Wie fragt man höflich nach etwas?", back:"Mit Konjunktiv II.", explain:"„Könnten Sie…?“, „Würden Sie…?“, „Ich hätte gern…“ So klingt man freundlich.", en:"Polite requests: Könnten/Würden Sie…?, Ich hätte gern…" },
+    { cat:"Gebrauch", front:"Wie gibt man einen Ratschlag?", back:"Mit „sollte“ oder „An deiner Stelle…“", explain:"Beispiel: „An deiner Stelle würde ich mehr schlafen.“", en:"Advice: 'Du solltest…' or 'An deiner Stelle würde ich…'." },
+    { cat:"Gebrauch", front:"Was bedeutet „An deiner Stelle würde ich …“?", back:"= Wenn ich du wäre.", explain:"Man gibt einen Rat. Beispiel: „An deiner Stelle würde ich warten.“", en:"'An deiner Stelle würde ich…' = If I were you, I would…" },
+    { cat:"Gebrauch", front:"Wie nutzt man „als ob“?", back:"„als ob“ + Konjunktiv II", explain:"Es zeigt einen unwirklichen Vergleich. Beispiel: „Er tut so, als ob er alles wüsste.“", en:"als ob + Konjunktiv II = as if: 'Er tut so, als ob er alles wüsste.'" },
+    { cat:"Gebrauch", front:"„Sie sieht aus, als ob sie krank ___.“ (sein)", back:"…krank wäre.", explain:"Vergleich: Vielleicht ist sie nicht krank, aber es sieht so aus.", en:"…als ob sie krank wäre = …as if she were ill." },
+    { cat:"Gebrauch", front:"Wie macht man eine höfliche Vermutung?", back:"Mit „könnte“ oder „dürfte“.", explain:"„Das könnte stimmen.“ „Er dürfte schon zu Hause sein.“ = wahrscheinlich.", en:"Polite guess: 'Das könnte stimmen', 'Er dürfte zu Hause sein'." },
+    { cat:"Gebrauch", front:"Was bedeutet „Das wäre alles, danke.“?", back:"Ich brauche nichts mehr.", explain:"Man nutzt es höflich im Geschäft oder Restaurant.", en:"'Das wäre alles' = That would be all (polite, when ordering)." },
+    { cat:"Gebrauch", front:"„Ich ___ vorschlagen, wir gehen.“ (würde)", back:"Ich würde vorschlagen, wir gehen.", explain:"So macht man einen höflichen Vorschlag.", en:"Ich würde vorschlagen… = I would suggest…" },
+    { cat:"Gebrauch", front:"Wie drückt man eine höfliche Meinung aus?", back:"Mit „würde sagen“ oder „fände“.", explain:"„Ich würde sagen, das ist gut.“ „Ich fände das besser.“", en:"Soften opinions: 'Ich würde sagen…', 'Ich fände…'." },
+    { cat:"Gebrauch", front:"Was bedeutet „Beinahe wäre ich zu spät gekommen.“?", back:"Ich kam fast zu spät, aber es ging gut.", explain:"„Beinahe“ = fast. Am Ende war alles okay.", en:"I almost arrived late (but didn't)." },
+    { cat:"Gebrauch", front:"Wie sagt man „An deiner Stelle…“ anders?", back:"„Wenn ich du wäre…“", explain:"Beide bedeuten das Gleiche und geben einen Rat.", en:"'Wenn ich du wäre…' = 'An deiner Stelle…' (giving advice)." },
+    { cat:"Gebrauch", front:"Wozu nutzt man „würde“ im Hauptsatz?", back:"Im „wenn“-Satz kurze Form, im Hauptsatz „würde“.", explain:"„Wenn ich Zeit hätte, würde ich kommen.“", en:"Often: short form in the 'wenn'-clause, würde in the main clause." },
+    { cat:"Gebrauch", front:"Wie macht man eine Bitte noch höflicher?", back:"Mit „vielleicht“.", explain:"„Könnten Sie mir vielleicht helfen?“ Das klingt sehr nett.", en:"Add 'vielleicht': 'Könnten Sie mir vielleicht helfen?'" },
+    { cat:"Gebrauch", front:"Was macht „Ich würde sagen…“ am Satzanfang?", back:"Es macht die Meinung weicher.", explain:"Man ist nicht zu direkt. = „meiner Meinung nach“.", en:"'Ich würde sagen…' softens your opinion (= 'I'd say…')." },
+    { cat:"Gebrauch", front:"„___ Sie vielleicht einen Moment Zeit?“ (haben)", back:"Hätten Sie vielleicht einen Moment Zeit?", explain:"Eine sehr höfliche Frage, oft zu fremden Menschen.", en:"Hätten Sie… Zeit? = Would you have a moment?" },
+    { cat:"Gebrauch", front:"Warum klingt der Konjunktiv II höflich?", back:"Er ist nicht direkt.", explain:"Statt „Gib mir das“ sagt man „Könntest du mir das geben?“ Das ist netter.", en:"It's indirect, so it sounds more respectful than a command." },
+
+    // ---------- Beispielsätze ----------
+    { cat:"Beispielsätze", front:"Übersetze: „I would like a coffee.“", back:"Ich hätte gern einen Kaffee.", explain:"Auch möglich: „Ich möchte einen Kaffee.“ Sehr höflich im Café.", en:"Ich hätte gern einen Kaffee." },
+    { cat:"Beispielsätze", front:"Übersetze: „If I had time, I would help you.“", back:"Wenn ich Zeit hätte, würde ich dir helfen.", explain:"Kurze Form „hätte“ im wenn-Satz, „würde“ im Hauptsatz.", en:"Wenn ich Zeit hätte, würde ich dir helfen." },
+    { cat:"Beispielsätze", front:"Übersetze: „Could you help me, please?“", back:"Könntest du mir bitte helfen?", explain:"Formell: „Könnten Sie mir bitte helfen?“", en:"Könntest/Könnten du/Sie mir bitte helfen?" },
+    { cat:"Beispielsätze", front:"Übersetze: „I wish I were at home.“", back:"Ich wünschte, ich wäre zu Hause.", explain:"„Ich wünschte“ + Konjunktiv II zeigt einen Wunsch.", en:"Ich wünschte, ich wäre zu Hause." },
+    { cat:"Beispielsätze", front:"Übersetze: „You should drink more water.“", back:"Du solltest mehr Wasser trinken.", explain:"„sollte“ gibt einen Rat.", en:"Du solltest mehr Wasser trinken." },
+    { cat:"Beispielsätze", front:"Übersetze: „That would be great!“", back:"Das wäre toll!", explain:"Auch: „Das wäre super!“", en:"Das wäre toll!" },
+    { cat:"Beispielsätze", front:"Übersetze: „If I were you, I would wait.“", back:"Wenn ich du wäre, würde ich warten.", explain:"Ein Rat mit „wenn ich du wäre“.", en:"Wenn ich du wäre, würde ich warten." },
+    { cat:"Beispielsätze", front:"Übersetze: „I would have come, but I was sick.“", back:"Ich wäre gekommen, aber ich war krank.", explain:"Vergangenheit: „wäre“ + Partizip II („gekommen“).", en:"Ich wäre gekommen, aber ich war krank." },
+    { cat:"Beispielsätze", front:"Übersetze: „Would you have time tomorrow?“", back:"Hättest du morgen Zeit?", explain:"Formell: „Hätten Sie morgen Zeit?“", en:"Hättest/Hätten du/Sie morgen Zeit?" },
+    { cat:"Beispielsätze", front:"Übersetze: „I could do that.“", back:"Ich könnte das machen.", explain:"„könnte“ zeigt eine Möglichkeit.", en:"Ich könnte das machen." },
+    { cat:"Beispielsätze", front:"Übersetze: „If only I had known that!“", back:"Wenn ich das nur gewusst hätte!", explain:"Vergangenheit + „nur“ für einen starken Wunsch/Bedauern.", en:"Wenn ich das nur gewusst hätte!" },
+    { cat:"Beispielsätze", front:"Übersetze: „He acts as if he were rich.“", back:"Er tut so, als ob er reich wäre.", explain:"Auch kurz: „…als wäre er reich.“", en:"Er tut so, als ob er reich wäre." },
+    { cat:"Beispielsätze", front:"Übersetze: „We would like to pay, please.“", back:"Wir würden gern zahlen, bitte.", explain:"Auch: „Wir möchten zahlen, bitte.“", en:"Wir würden gern zahlen, bitte." },
+    { cat:"Beispielsätze", front:"Übersetze: „You should have told me.“", back:"Du hättest es mir sagen sollen.", explain:"Vergangenheit + Modalverb: hätte + Infinitiv + sollen.", en:"Du hättest es mir sagen sollen." },
+    { cat:"Beispielsätze", front:"Übersetze: „I would never do that.“", back:"Das würde ich nie machen.", explain:"Auch: „Das täte ich nie.“", en:"Das würde ich nie machen." },
+    { cat:"Beispielsätze", front:"Übersetze: „It would be nice to travel more.“", back:"Es wäre schön, mehr zu reisen.", explain:"„Es wäre schön, …“ für eine angenehme, unwirkliche Idee.", en:"Es wäre schön, mehr zu reisen." },
+  ];
+
+  // ---- State ---------------------------------------------------------------
+  const KNOWN_KEY = "konjunktiv2_known";
+  const known = new Set(JSON.parse(localStorage.getItem(KNOWN_KEY) || "[]"));
+
+  const cats = ["Alle", ...Array.from(new Set(CARDS.map(c => c.cat)))];
+  let activeCat = "Alle";
+  let deck = [];      // array of indices into CARDS
+  let pos = 0;
+  let flipped = false;
+
+  // ---- Elements ------------------------------------------------------------
+  const $ = id => document.getElementById(id);
+  const filtersEl = $("filters");
+  const card = $("card");
+  const frontText = $("frontText");
+  const backAnswer = $("backAnswer");
+  const backExplain = $("backExplain");
+  const backEnglish = $("backEnglish");
+  const enBtn = $("enBtn");
+  const frontTag = $("frontTag");
+  const backTag = $("backTag");
+  const countEl = $("count");
+  const knownEl = $("known");
+  const barFill = $("barFill");
+
+  // ---- Deck helpers --------------------------------------------------------
+  function buildDeck() {
+    deck = CARDS.map((_, i) => i).filter(i => activeCat === "Alle" || CARDS[i].cat === activeCat);
+    pos = 0;
+    flipped = false;
+  }
+
+  function shuffleDeck() {
+    for (let i = deck.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [deck[i], deck[j]] = [deck[j], deck[i]];
+    }
+    pos = 0;
+    flipped = false;
+    render();
+  }
+
+  function saveKnown() {
+    localStorage.setItem(KNOWN_KEY, JSON.stringify(Array.from(known)));
+  }
+
+  // ---- Render --------------------------------------------------------------
+  function buildFilters() {
+    filtersEl.innerHTML = "";
+    cats.forEach(c => {
+      const b = document.createElement("button");
+      b.className = "chip" + (c === activeCat ? " active" : "");
+      b.textContent = c;
+      b.addEventListener("click", () => {
+        activeCat = c;
+        buildDeck();
+        buildFilters();
+        render();
+      });
+      filtersEl.appendChild(b);
+    });
+  }
+
+  function render() {
+    if (deck.length === 0) return;
+    const c = CARDS[deck[pos]];
+
+    card.classList.toggle("flipped", flipped);
+    frontText.textContent = c.front;
+    frontTag.textContent = c.cat;
+    backTag.textContent = c.cat;
+    backAnswer.textContent = c.back;
+    backExplain.textContent = c.explain;
+
+    // English fallback stays hidden until the user asks for it
+    backEnglish.textContent = c.en || "";
+    backEnglish.classList.remove("show");
+    enBtn.style.display = c.en ? "" : "none";
+    enBtn.textContent = "🇬🇧 Englisch zeigen";
+
+    countEl.textContent = "Karte " + (pos + 1) + " / " + deck.length;
+    const learnedInDeck = deck.filter(i => known.has(i)).length;
+    knownEl.textContent = "✓ " + learnedInDeck + " gelernt";
+    barFill.style.width = (deck.length ? (learnedInDeck / deck.length * 100) : 0) + "%";
+
+    // highlight known card
+    card.style.opacity = known.has(deck[pos]) ? "0.78" : "1";
+  }
+
+  function flip() { flipped = !flipped; render(); }
+  function next() { if (!deck.length) return; pos = (pos + 1) % deck.length; flipped = false; render(); }
+  function prev() { if (!deck.length) return; pos = (pos - 1 + deck.length) % deck.length; flipped = false; render(); }
+
+  function markGot() {
+    if (!deck.length) return;
+    known.add(deck[pos]);
+    saveKnown();
+    next();
+  }
+  function markAgain() {
+    if (!deck.length) return;
+    known.delete(deck[pos]);
+    saveKnown();
+    next();
+  }
+
+  // ---- Events --------------------------------------------------------------
+  card.addEventListener("click", flip);
+  enBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const showing = backEnglish.classList.toggle("show");
+    enBtn.textContent = showing ? "🇬🇧 Englisch verbergen" : "🇬🇧 Englisch zeigen";
+  });
+
+  $("flipBtn").addEventListener("click", flip);
+  $("nextBtn").addEventListener("click", next);
+  $("prevBtn").addEventListener("click", prev);
+  $("shuffleBtn").addEventListener("click", shuffleDeck);
+  $("gotBtn").addEventListener("click", markGot);
+  $("againBtn").addEventListener("click", markAgain);
+
+  $("resetBtn").addEventListener("click", () => {
+    known.clear();
+    saveKnown();
+    render();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight") { e.preventDefault(); next(); }
+    else if (e.key === "ArrowLeft") { e.preventDefault(); prev(); }
+    else if (e.key === " " || e.key === "ArrowUp") { e.preventDefault(); flip(); }
+    else if (e.key === "s" || e.key === "S") { shuffleDeck(); }
+    else if (e.key === "g" || e.key === "G") { markGot(); }
+    else if (e.key === "n" || e.key === "N") { markAgain(); }
+  });
+
+  // ---- Init ----------------------------------------------------------------
+  buildDeck();
+  buildFilters();
+  render();
+})();
+</script>
+</body>
+</html>
