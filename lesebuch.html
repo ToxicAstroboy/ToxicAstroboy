@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Der Schlüssel zum Schwarzwald — B1 Lesebuch</title>
+<style>
+  :root {
+    --bg: #0b0d1a;
+    --fg: #e7f6ff;
+    --accent: #6cffae;
+    --danger: #ff4d6d;
+    --coin: #ffd93d;
+    --panel: #11142a;
+    --paper: #1a1d33;
+    --line: #1c2140;
+    --line2: #2a335f;
+    --ink: #ede8d0;
+    --ink-dim: #a8a58c;
+    --gloss: #ffd93d;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    min-height: 100%;
+    background: var(--bg);
+    color: var(--fg);
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    font-family: ui-monospace, "Courier New", monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 12px 40px;
+  }
+  .pixel { font-family: "Press Start 2P", ui-monospace, "Courier New", monospace; }
+
+  header {
+    width: 100%;
+    max-width: 720px;
+    text-align: center;
+    padding-top: 4px;
+  }
+  h1 {
+    font-family: "Press Start 2P", ui-monospace, monospace;
+    font-size: 15px;
+    line-height: 1.6;
+    letter-spacing: 2px;
+    color: var(--accent);
+  }
+  .subtitle {
+    margin-top: 10px;
+    font-family: "Press Start 2P", ui-monospace, monospace;
+    font-size: 8px;
+    opacity: 0.55;
+    letter-spacing: 1px;
+    line-height: 1.6;
+  }
+
+  /* Chapter chips */
+  #chapters {
+    width: 100%;
+    max-width: 720px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    margin-top: 4px;
+  }
+  .chip {
+    font-family: "Press Start 2P", ui-monospace, monospace;
+    font-size: 8px;
+    letter-spacing: 0.5px;
+    padding: 8px 10px;
+    background: var(--panel);
+    color: var(--fg);
+    border: 2px solid var(--line);
+    border-radius: 4px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: transform 0.05s;
+  }
+  .chip:active { transform: translateY(1px); }
+  .chip.active {
+    background: var(--accent);
+    color: #06121a;
+    border-color: var(--accent);
+  }
+
+  /* Progress */
+  #progressRow {
+    width: 100%;
+    max-width: 720px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: "Press Start 2P", ui-monospace, monospace;
+    font-size: 8px;
+    letter-spacing: 1px;
+    opacity: 0.85;
+  }
+  #progressRow .hint { color: var(--coin); }
+  #bar {
+    width: 100%;
+    max-width: 720px;
+    height: 6px;
+    background: var(--line);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  #barFill {
+    height: 100%;
+    width: 0%;
+    background: var(--accent);
+    transition: width 0.3s;
+  }
+
+  /* Reader */
+  #reader {
+    width: 100%;
+    max-width: 720px;
+    background: var(--paper);
+    border: 3px solid var(--line);
+    border-radius: 8px;
+    box-shadow: 0 0 0 4px #06070f, 0 12px 32px rgba(0,0,0,0.55);
+    padding: 28px 24px 24px;
+    color: var(--ink);
+    font-family: Georgia, "Times New Roman", "Noto Serif", serif;
+    font-size: 17px;
+    line-height: 1.75;
+  }
+  #reader h2 {
+    font-family: "Press Start 2P", ui-monospace, monospace;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    color: var(--accent);
+    line-height: 1.6;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+  #reader .kap {
+    font-family: "Press Start 2P", ui-monospace, monospace;
+    font-size: 8px;
+    color: var(--coin);
+    letter-spacing: 1px;
+    margin-bottom: 22px;
+    display: block;
+  }
+  #reader p {
+    margin-bottom: 1.05em;
+    text-align: justify;
+    hyphens: auto;
+    -webkit-hyphens: auto;
+  }
+  #reader p.dialog {
+    padding-left: 8px;
+    border-left: 2px solid var(--line2);
+    color: #ded9c0;
+  }
+  #reader em {
+    color: #f0e2a8;
+    font-style: italic;
+  }
+  #reader .sig {
+    text-align: right;
+    color: var(--coin);
+    font-style: italic;
+    margin-top: 1em;
+  }
+  #reader .end {
+    text-align: center;
+    color: var(--accent);
+    font-family: "Press Start 2P", ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    padding: 18px 0 6px;
+  }
+
+  /* Vocabulary spans */
+  .v {
+    cursor: pointer;
+    color: var(--ink);
+    border-bottom: 1px dotted var(--gloss);
+    transition: background 0.15s;
+  }
+  .v:hover { background: rgba(255, 217, 61, 0.12); }
+  .v.open { background: rgba(255, 217, 61, 0.22); border-bottom-style: solid; }
+  .v.reveal { color: var(--gloss); }
+
+  /* Reveal-all inline mode */
+  #reader.showAll .v::after {
+    content: " (" attr(data-en) ")";
+    color: var(--gloss);
+    font-size: 0.82em;
+    font-style: italic;
+    opacity: 0.85;
+  }
+  #reader.showAll .v { border-bottom: none; }
+
+  /* Tooltip */
+  #tip {
+    position: absolute;
+    background: #0b0d1a;
+    color: var(--gloss);
+    border: 2px solid var(--gloss);
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-family: ui-monospace, "Courier New", monospace;
+    font-size: 13px;
+    line-height: 1.4;
+    max-width: 260px;
+    pointer-events: none;
+    z-index: 50;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+    transform: translate(-50%, -100%);
+    display: none;
+    white-space: normal;
+  }
+  #tip::after {
+    content: "";
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: var(--gloss);
+  }
+
+  /* Controls */
+  #controls {
+    width: 100%;
+    max-width: 720px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+  .btn {
+    font-family: "Press Start 2P", ui-monospace, monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    padding: 12px 8px;
+    background: var(--panel);
+    color: var(--fg);
+    border: 2px solid var(--line);
+    border-radius: 4px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: transform 0.05s, background 0.1s;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn:hover { background: var(--line); }
+  .btn.mid { color: var(--coin); border-color: var(--line2); }
+  .btn.mid.on {
+    background: var(--coin);
+    color: #06121a;
+    border-color: var(--coin);
+  }
+  .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  footer {
+    width: 100%;
+    max-width: 720px;
+    text-align: center;
+    font-family: "Press Start 2P", ui-monospace, monospace;
+    font-size: 7px;
+    letter-spacing: 1px;
+    opacity: 0.4;
+    padding: 6px 0;
+  }
+
+  @media (max-width: 500px) {
+    h1 { font-size: 12px; letter-spacing: 1.5px; }
+    #reader { padding: 22px 16px 18px; font-size: 16px; line-height: 1.72; }
+    .chip { font-size: 7px; padding: 7px 8px; }
+    .btn { font-size: 8px; padding: 11px 4px; }
+    #tip { font-size: 12px; max-width: 200px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Der Schlüssel<br>zum Schwarzwald</h1>
+  <p class="subtitle">Ein Lesebuch • Niveau B1 • 8 Kapitel</p>
+</header>
+
+<nav id="chapters"></nav>
+
+<div id="progressRow">
+  <span>Kapitel <span id="curCh">1</span> / <span id="totCh">8</span></span>
+  <span class="hint">Wort antippen = Übersetzung</span>
+</div>
+<div id="bar"><div id="barFill"></div></div>
+
+<article id="reader"></article>
+
+<div id="controls">
+  <button id="prev" class="btn">← Zurück</button>
+  <button id="toggleTr" class="btn mid">EN alle</button>
+  <button id="next" class="btn">Weiter →</button>
+</div>
+
+<footer>Toxic Astroboy • Deutsches Lesebuch B1.0</footer>
+
+<div id="tip"></div>
+
+<script>
+"use strict";
+
+/*
+  Vocabulary format inline in the story: <v en="translation">word</v>
+  The renderer converts this to a clickable span with a tooltip.
+*/
+
+const CHAPTERS = [
+  {
+    title: "Ankunft in Waldbach",
+    number: "Kapitel 1",
+    body: `
+<p>Der Zug nach Waldbach fährt langsam. Draußen ziehen die dunklen <v en="fir trees">Tannen</v> des <v en="Black Forest">Schwarzwaldes</v> vorbei, und der <v en="fog">Nebel</v> liegt schwer über den <v en="hills">Hügeln</v>. Ich heiße Lena, bin zweiundzwanzig Jahre alt und studiere in Berlin <v en="art history">Kunstgeschichte</v>. Aber heute bin ich weit weg von der Stadt.</p>
+
+<p>Meine Großmutter Hilde ist letzte Woche in ein <v en="nursing home">Pflegeheim</v> gezogen. Sie ist einundneunzig und kann nicht mehr allein leben. Mein Vater hat mich <v en="asked">gebeten</v>, für ein paar Tage in ihr altes Haus zu fahren und beim <v en="tidying up">Aufräumen</v> zu helfen. „Du bist die Einzige, die Zeit hat", hat er am Telefon gesagt. Das stimmt: In den <v en="semester break">Semesterferien</v> habe ich sonst nichts vor.</p>
+
+<p>Am Bahnhof steht niemand. Der Schnee auf dem <v en="platform">Bahnsteig</v> ist schmutzig, und es riecht nach <v en="wet">nassem</v> Holz. Ich ziehe meinen Koffer hinter mir her und gehe zu Fuß in Richtung Dorf. Der Weg ist kürzer, als ich dachte. Nach zehn Minuten sehe ich das kleine Haus meiner Großmutter zwischen den Bäumen: braunes Holz, ein grünes Dach und <v en="shutters">Fensterläden</v>, die früher weiß waren.</p>
+
+<p>Ich hole den Schlüssel aus der Tasche. Er ist alt und schwer. Als ich ihn <v en="turn">drehe</v>, klingt das <v en="lock">Schloss</v> laut in der Stille. Die Tür öffnet sich mit einem leisen <v en="creaking">Knarren</v>.</p>
+
+<p>Drinnen ist es kalt. Die Möbel sind noch da, aber alles wirkt wie <v en="frozen">eingefroren</v>. Auf dem Tisch liegt eine Zeitung aus dem letzten Monat. Neben dem <v en="stove">Ofen</v> steht ein Paar <v en="slippers">Hausschuhe</v>, als würde meine Großmutter jeden Moment aus dem Nebenzimmer kommen. Ich bleibe kurz stehen und höre meinem eigenen <v en="breath">Atem</v> zu.</p>
+
+<p class="dialog">„Also gut", sage ich leise zu mir selbst. „Fangen wir an."</p>
+
+<p>Ich stelle den Koffer ab, ziehe die Jacke aus und mache das Licht an. Zwei der Lampen funktionieren nicht mehr. Im Wohnzimmer hängt ein altes Foto: Meine Großmutter als junge Frau, neben einem Mann, den ich nicht kenne. Sie lacht. Der Mann schaut <v en="serious">ernst</v>.</p>
+
+<p>Auf der <v en="back (of photo)">Rückseite</v> des Fotos steht in schwacher <v en="ink">Tinte</v>: <em>Hilde und Josef, Sommer 1961</em>.</p>
+
+<p>Josef. Diesen Namen habe ich noch nie gehört. Meine Großmutter hat nie von einem Josef gesprochen — nicht in all den Jahren, in denen ich sie besucht habe.</p>
+
+<p>Ich stelle das Foto zurück auf das <v en="shelf">Regal</v>, aber irgendetwas in mir hat sich schon <v en="changed">verändert</v>. Vielleicht weiß ich noch nicht, dass diese Woche mein Leben ein wenig anders machen wird.</p>
+    `
+  },
+
+  {
+    title: "Das leere Haus",
+    number: "Kapitel 2",
+    body: `
+<p>Am nächsten Morgen wache ich früh auf. Durch das kleine <v en="bedroom">Schlafzimmer</v>fenster fällt ein <v en="pale">blasses</v> Licht. Draußen schneit es leicht. Ich habe schlecht geschlafen; das Bett ist weich, aber das Haus macht <v en="noises">Geräusche</v>, die ich nicht kenne — das <v en="creaking">Knacken</v> der <v en="beams">Balken</v>, der Wind, der gegen die Fensterläden schlägt.</p>
+
+<p>In der Küche mache ich mir einen starken Kaffee. Der <v en="fridge">Kühlschrank</v> ist leer, aber im <v en="cupboard">Schrank</v> finde ich noch Kaffeepulver und eine Dose Kekse. Ich nehme beides mit ins Wohnzimmer und setze mich in den alten <v en="armchair">Sessel</v> meiner Großmutter.</p>
+
+<p>Von hier aus kann ich das ganze Zimmer sehen. Bücher, überall Bücher. Meine Großmutter war Lehrerin, bevor sie in <v en="retirement">Rente</v> gegangen ist. Sie hat mir früher gesagt, dass ein Haus ohne Bücher wie ein Winter ohne Schnee ist. Damals habe ich das nicht ganz verstanden.</p>
+
+<p>Nach dem Frühstück beginne ich mit der Arbeit. Mein Vater hat gesagt, ich solle Kisten mit Kleidung und <v en="dishes">Geschirr</v> packen. Der Rest kann später kommen. Aber die Bücher — die Bücher will ich mir erst noch ansehen.</p>
+
+<p>Ich nehme das erste Regal in <v en="tackle it">Angriff</v>. Romane, Kochbücher, <v en="poetry volumes">Gedichtbände</v>. Manche sind sehr alt, mit gelben Seiten und einem Geruch, den ich mag: der <v en="smell">Geruch</v> von Zeit. In einem der Bücher — einer <v en="edition">Ausgabe</v> von Goethes „Faust" — finde ich einen kleinen <v en="note (paper)">Zettel</v>. Darauf steht in der <v en="handwriting">Handschrift</v> meiner Großmutter: <em>Nicht vergessen: 3. April, Waldweg, 15 Uhr</em>.</p>
+
+<p>Das Datum liegt <v en="decades">Jahrzehnte</v> zurück. Trotzdem wirkt der Zettel, als hätte ihn jemand gestern geschrieben.</p>
+
+<p>Ich lege den Zettel zur Seite und arbeite weiter. Am Nachmittag klopft es an der Tür. Ich <v en="flinch">zucke zusammen</v>. Wer soll das sein? Niemand außer meiner Familie weiß, dass ich hier bin.</p>
+
+<p>Vor der Tür steht ein älterer Mann mit einem grauen Mantel und einem Hut. Er ist vielleicht achtzig Jahre alt, aber seine Augen sind <v en="alert / awake">wach</v> und freundlich.</p>
+
+<p class="dialog">„Entschuldigen Sie", sagt er höflich. „Sind Sie die <v en="granddaughter">Enkelin</v> von Frau Berger?"</p>
+
+<p class="dialog">„Ja", antworte ich <v en="cautiously">vorsichtig</v>. „Kennen Sie meine Großmutter?"</p>
+
+<p>Er lächelt. „Wir kennen uns seit über sechzig Jahren. Mein Name ist Heinrich Vogel. Ich wohne im nächsten Haus."</p>
+
+<p>Er streckt mir seine Hand entgegen. Sie ist kalt, aber der <v en="grip / pressure">Druck</v> ist überraschend fest. Ich weiß nicht, warum, aber in diesem Moment denke ich sofort wieder an den Namen Josef.</p>
+    `
+  },
+
+  {
+    title: "Der Schlüssel im Buch",
+    number: "Kapitel 3",
+    body: `
+<p>Herr Vogel bleibt nicht lange. Er wollte nur wissen, wie es meiner Großmutter im Pflegeheim geht. Ich verspreche, sie in seinem Namen zu <v en="pass on greetings">grüßen</v>. Bevor er geht, sagt er noch etwas <v en="strange">Merkwürdiges</v>:</p>
+
+<p class="dialog">„Wenn Sie hier alte Dinge finden, die Sie nicht verstehen — kommen Sie zu mir. Ich weiß vielleicht mehr, als Sie denken."</p>
+
+<p>Dann <v en="taps">tippt</v> er höflich an seinen Hut und verschwindet in der weißen Landschaft.</p>
+
+<p>Ich schließe die Tür und lehne mich gegen das Holz. Was hat er damit gemeint? Wahrscheinlich nichts Besonderes. Alte Leute reden manchmal in <v en="riddles">Rätseln</v>. Trotzdem lässt mich das Gefühl nicht los, dass ich in diesem Haus etwas finden werde, das ich nicht suche.</p>
+
+<p>Am Abend setze ich mich noch einmal ans Bücherregal. Ich habe mir einen Tee gekocht und eine <v en="blanket">Decke</v> über die Schultern gelegt. Draußen ist es schon dunkel. Nur eine kleine Lampe brennt neben dem Sessel.</p>
+
+<p>Ich nehme das nächste Buch aus dem Regal — einen dicken Band mit einem roten <v en="leather cover">Ledereinband</v>. „Deutsche <v en="landscape painting">Landschaftsmalerei</v> des 20. Jahrhunderts" steht auf dem Rücken. Ich <v en="leaf through">blättere</v> langsam durch die Seiten. Meine Großmutter hat viele Bilder mit <v en="pencil">Bleistift</v> markiert. Bei einigen hat sie am Rand kleine Zeichen gemacht: einen Stern, einen Kreis, einen <v en="arrow">Pfeil</v>.</p>
+
+<p>Ungefähr in der Mitte des Buches spüre ich etwas Hartes zwischen den Seiten. Ich schlage das Buch auf — und dort liegt er.</p>
+
+<p>Ein Schlüssel.</p>
+
+<p>Er ist klein, aus <v en="brass">Messing</v>, und sieht aus wie der Schlüssel für eine alte <v en="chest">Truhe</v> oder eine <v en="small box">Schatulle</v>. An seinem Ring hängt ein winziges Stück Papier. Ich <v en="unfold">falte</v> es auf, so vorsichtig ich kann, damit es nicht <v en="breaks">zerbricht</v>.</p>
+
+<p>Auf dem Papier steht in schöner, alter Handschrift:</p>
+
+<p><em>Für Hilde. Wenn ich nicht zurückkomme, weißt du, wo du suchen musst. — J.</em></p>
+
+<p>Ich lese den Satz noch einmal. Und noch einmal. Mein Herz schlägt schneller. J. — das kann nur Josef sein. Der Mann auf dem Foto, den meine Großmutter nie <v en="mentioned">erwähnt</v> hat.</p>
+
+<p>Ich lege den Schlüssel vorsichtig in meine <v en="palm">Handfläche</v>. Er ist kalt, aber irgendwie fühlt es sich an, als würde er leise leben.</p>
+
+<p class="dialog">„Wo soll ich suchen?", frage ich das leere Zimmer.</p>
+
+<p>Natürlich antwortet niemand. Aber ich weiß, dass ich morgen früh Herrn Vogel besuchen werde.</p>
+    `
+  },
+
+  {
+    title: "Ein Brief aus der Vergangenheit",
+    number: "Kapitel 4",
+    body: `
+<p>Ich schlafe fast gar nicht. Der kleine Messingschlüssel liegt auf dem <v en="nightstand">Nachttisch</v>, und immer wieder greife ich danach, um sicher zu sein, dass er wirklich <v en="exists">existiert</v>. Um vier Uhr morgens gebe ich auf, stehe auf und mache mir wieder Kaffee.</p>
+
+<p>Bevor ich zu Herrn Vogel gehe, will ich das Haus noch einmal <v en="search">durchsuchen</v>. Vielleicht gibt es weitere <v en="clues">Hinweise</v>. Ich beginne im Wohnzimmer, dann in der Küche, dann im <v en="hallway">Flur</v>. Nichts. Erst im Schlafzimmer meiner Großmutter finde ich etwas: eine kleine <v en="wooden drawer">Holzschublade</v> unter dem Bett, die <v en="locked">verschlossen</v> ist.</p>
+
+<p>Der Schlüssel passt nicht. Er ist zu klein.</p>
+
+<p>Ich versuche, die Schublade mit einem Messer zu öffnen — vorsichtig, damit ich nichts kaputt mache. Nach einigen Minuten <v en="gives way">gibt</v> das Schloss <v en="gives way">nach</v>. In der Schublade liegen mehrere alte Briefe, mit einem roten <v en="ribbon">Band</v> zusammengebunden. Der oberste Brief trägt das Datum <em>14. August 1962</em>.</p>
+
+<p>Ich setze mich auf den Boden und beginne zu lesen. Der Brief ist in einer schönen, aber sehr kleinen Handschrift geschrieben.</p>
+
+<p><em>Liebe Hilde,</em></p>
+
+<p><em>wenn Du diesen Brief liest, bin ich vielleicht schon nicht mehr im Land. Man hat mich <v en="warned">gewarnt</v>, dass sie mich <v en="watch / observe">beobachten</v>. In der letzten Woche waren zweimal fremde Männer in meiner Wohnung in Leipzig. Ich habe die Bilder nicht mehr zeigen können; das wäre zu <v en="dangerous">gefährlich</v> gewesen.</em></p>
+
+<p><em>Ich habe alles, was mir wichtig ist, an einen sicheren Ort gebracht — Du weißt, welchen ich meine. Wenn ich es <v en="manage / make it">schaffe</v>, komme ich im Herbst zu Dir. Wenn nicht, dann bitte ich Dich um eines: Vergiss die Bilder nicht. Sie sind das Beste, was ich gemacht habe, und ich möchte nicht, dass sie <v en="lost">verloren</v> gehen.</em></p>
+
+<p><em>Es tut mir leid, dass ich Dich in diese Sache <v en="drag into">hineinziehe</v>. Aber Du warst immer die Einzige, der ich <v en="trust">vertrauen</v> konnte.</em></p>
+
+<p class="sig">Dein Bruder,<br>Josef</p>
+
+<p>Ich lese den Brief dreimal. Meine Hände <v en="tremble">zittern</v> ein wenig. Josef war also der Bruder meiner Großmutter. Er hat in Leipzig gelebt — also in der DDR. Und er war <v en="apparently">offenbar</v> Künstler. Warum hat meine Großmutter nie ein Wort über ihn gesagt?</p>
+
+<p>Ich stecke den Brief vorsichtig in meine Jacke, ziehe meinen Mantel an und laufe zu Herrn Vogel hinüber. Es hat wieder angefangen zu schneien. Aber diesmal spüre ich die Kälte kaum.</p>
+    `
+  },
+
+  {
+    title: "Der alte Nachbar",
+    number: "Kapitel 5",
+    body: `
+<p>Herr Vogel öffnet die Tür, als hätte er schon auf mich gewartet. Er trägt eine <v en="wool jacket">Wolljacke</v> und riecht leicht nach <v en="pipe tobacco">Pfeifentabak</v>. Ohne viele Worte führt er mich in eine kleine, warme <v en="kitchen-diner">Wohnküche</v>. Auf dem Herd steht ein Topf mit Suppe.</p>
+
+<p class="dialog">„Setzen Sie sich, Kind", sagt er. „Sie sehen aus, als hätten Sie einen <v en="ghost">Geist</v> gesehen."</p>
+
+<p>Ich lächle <v en="uncertainly">unsicher</v>. „Vielleicht habe ich das."</p>
+
+<p>Ich hole den Brief aus der Tasche und lege ihn auf den Tisch. Herr Vogel setzt seine Brille auf und beugt sich darüber. Er liest langsam, ohne ein Wort zu sagen. Dann nimmt er die Brille ab und schaut mich lange an.</p>
+
+<p class="dialog">„Ja", sagt er <v en="finally">schließlich</v>. „Ich habe mich immer gefragt, ob dieser Tag kommen würde."</p>
+
+<p class="dialog">„Sie wissen also, wer Josef war?"</p>
+
+<p>Herr Vogel nickt. „Josef Berger. Der Bruder Ihrer Großmutter. Ein sehr <v en="talented">begabter</v> Maler. Er hat in Leipzig gelebt, damals, als das Land noch <v en="divided">geteilt</v> war."</p>
+
+<p>Er steht auf, holt zwei Tassen und gießt uns Tee ein. Draußen wird der Wind stärker. Der <v en="kettle">Wasserkessel</v> pfeift leise, als er die Küche wieder betritt.</p>
+
+<p class="dialog">„Josef war anders als die meisten Menschen", <v en="continues">fährt er fort</v>. „Er hat Bilder gemalt, die dem Staat nicht gefallen haben. Nicht politisch, sondern einfach — frei. Landschaften, in denen es keine <v en="flags">Fahnen</v> gab. Menschen, die nicht lächelten, weil sie sollten. Er wusste, dass er Probleme bekommen würde. Aber er hat nicht aufgehört."</p>
+
+<p class="dialog">„Und was ist passiert?"</p>
+
+<p class="dialog">„Im Herbst 1962 wollte er in den Westen kommen. Zu Ihrer Großmutter. Er hat die wichtigsten Bilder schon Monate vorher hierher geschickt, versteckt in Möbeln, in Kisten mit alten Büchern. Ihre Großmutter hat alles genommen und versteckt, und niemand außer uns beiden wusste davon. Er selbst hat es nie über die <v en="border">Grenze</v> geschafft."</p>
+
+<p>Ich <v en="swallow">schlucke</v>. „Ist er ..."</p>
+
+<p>Herr Vogel <v en="lowers">senkt</v> den Blick. „Wir wissen es nicht genau. Er ist verschwunden. Vielleicht <v en="arrested">verhaftet</v>, vielleicht getötet. Ihre Großmutter hat nie erfahren, was wirklich mit ihm passiert ist. Sie hat vierzig Jahre lang gewartet und gehofft. Und irgendwann hat sie aufgehört, seinen Namen auszusprechen — weil es zu <v en="hurt">wehtat</v>."</p>
+
+<p>Wir schweigen. Ich denke an meine Großmutter, an ihr freundliches Gesicht, an all die kleinen Geheimnisse, die sie mit sich getragen haben muss.</p>
+
+<p class="dialog">„Die Bilder", sage ich leise. „Wo sind sie?"</p>
+
+<p>Herr Vogel lächelt zum ersten Mal an diesem Morgen. „Das, meine Liebe, sollten Sie selbst <v en="find out">herausfinden</v>. Aber ich verrate Ihnen eines: Ihre Großmutter hat den Schlüssel nie <v en="by chance">zufällig</v> in ein Buch über Landschaftsmalerei gelegt."</p>
+    `
+  },
+
+  {
+    title: "Die Bibliothek",
+    number: "Kapitel 6",
+    body: `
+<p>Als ich das Haus von Herrn Vogel verlasse, ist es schon Mittag. Der Himmel hat sich <v en="cleared up">aufgeklart</v>, und über den Hügeln steht eine blasse Wintersonne. Ich atme tief ein. Die kalte Luft tut gut.</p>
+
+<p>Auf dem Rückweg denke ich über seine letzten Worte nach. Der Schlüssel war in einem Buch über deutsche Landschaftsmalerei — kein Zufall, sagte er. Also muss ich in diese Richtung suchen. Aber wo?</p>
+
+<p>Zurück im Haus setze ich mich wieder ans Regal und nehme das rote Buch heraus. Ich blättere langsamer als gestern. Meine Großmutter hat, wie ich schon <v en="noticed">bemerkt</v> habe, kleine Zeichen an den Rand gemacht. Ich versuche, ein <v en="pattern">Muster</v> zu erkennen.</p>
+
+<p>Bei einem Bild eines nebligen Waldes bleibe ich stehen. Am Rand steht ein Wort, das ich gestern <v en="overlooked">übersehen</v> habe: <em>Dachboden</em>. In derselben Handschrift wie der Zettel auf dem Schlüsselring.</p>
+
+<p>Der <v en="attic">Dachboden</v>. Natürlich. Ich habe den ganzen Tag im <v en="ground floor">Erdgeschoss</v> aufgeräumt und die obere <v en="floor / storey">Etage</v> kaum betreten. Ich habe nicht einmal daran gedacht, dass es einen Dachboden gibt.</p>
+
+<p>Aber bevor ich hinaufgehe, will ich noch etwas anderes tun. Ich will herausfinden, ob es in Waldbach irgendwo Informationen über meinen <v en="great-uncle">Großonkel</v> Josef gibt. Vielleicht in der Dorfbibliothek. Herr Vogel hat mir gesagt, dass sie in einem alten Steinhaus am <v en="market square">Marktplatz</v> ist.</p>
+
+<p>Die Bibliothek ist kleiner, als ich erwartet habe. Hinter dem Schreibtisch sitzt eine Frau in den Fünfzigern, mit einer bunten Brille und einem freundlichen Lächeln. Sie stellt sich als Frau Krause vor.</p>
+
+<p class="dialog">„Ich suche Informationen über einen Künstler aus Leipzig", sage ich. „Sein Name war Josef Berger. Er hat in den fünfziger und sechziger Jahren gemalt."</p>
+
+<p>Frau Krause hebt die <v en="eyebrows">Augenbrauen</v>. „Berger — wie Frau Berger, die im alten Waldhaus wohnt?"</p>
+
+<p class="dialog">„Ja, das ist meine Großmutter. Josef war ihr Bruder."</p>
+
+<p class="dialog">„Interessant", sagt sie langsam. „Kommen Sie mit."</p>
+
+<p>Sie führt mich in einen <v en="side room">Nebenraum</v>, in dem viele alte Zeitungen und Bücher <v en="stacked">gestapelt</v> sind. Nach einigen Minuten zieht sie einen dünnen Band heraus. Es ist ein <v en="catalogue">Katalog</v> zu einer <v en="exhibition">Ausstellung</v>, die vor ungefähr fünfzehn Jahren in Freiburg stattgefunden hat. Der Titel: <em>Verschwundene Stimmen — Ostdeutsche Künstler nach 1961</em>.</p>
+
+<p>Wir blättern zusammen. Und da, auf Seite 47, sehe ich zum ersten Mal ein Bild von ihm: ein <v en="self-portrait">Selbstporträt</v> eines jungen Mannes mit ernsten Augen und dunklen <v en="curls">Locken</v>. Unter dem Bild steht: <em>Josef Berger (1928 – vermisst seit 1962). Bilder unbekannt.</em></p>
+
+<p>Mir wird kalt und warm zugleich. „Unbekannt", <v en="whisper">flüstere</v> ich.</p>
+
+<p>Frau Krause schaut mich an. „Vielleicht", sagt sie ruhig, „wird das nicht mehr lange so bleiben."</p>
+    `
+  },
+
+  {
+    title: "Die Truhe auf dem Dachboden",
+    number: "Kapitel 7",
+    body: `
+<p>Ich komme im Dunkeln nach Hause. Der <v en="exhibition catalogue">Ausstellungskatalog</v> liegt in meiner Tasche, und in meinem Kopf drehen sich die Gedanken. Ein verschwundener Maler. Bilder, die niemand mehr gesehen hat. Ein <v en="family secret">Familiengeheimnis</v>, das seit sechzig Jahren in einem stillen Haus im Schwarzwald schläft.</p>
+
+<p>Ich stelle den Katalog auf den Küchentisch und hole eine <v en="flashlight">Taschenlampe</v> aus der Schublade. Der Zugang zum Dachboden ist im Flur oben: eine schmale <v en="hatch / flap">Klappe</v> in der Decke mit einer kleinen, eingebauten <v en="ladder">Leiter</v>, die man nach unten ziehen kann.</p>
+
+<p>Die Leiter <v en="squeaks">quietscht</v> laut, als ich sie herunterhole. Dann <v en="climb">klettere</v> ich langsam nach oben. Der Dachboden ist niedrig, <v en="dusty">staubig</v> und kalt. Alte Möbel stehen unter weißen <v en="cloths / sheets">Tüchern</v>. Kisten <v en="stack up">stapeln</v> sich in den Ecken. Es riecht nach Holz und trockener Zeit.</p>
+
+<p>Ich leuchte langsam durch den Raum. In einer Ecke sehe ich etwas, das mit einem großen Tuch bedeckt ist. Es ist nicht sehr groß — ungefähr wie ein Nachttisch, aber breiter. Als ich das Tuch wegziehe, kommt eine hölzerne Truhe zum <v en="comes into view">Vorschein</v>. Sie ist alt, aber sehr gut gebaut. Und in der Mitte, neben zwei kleinen <v en="leather handles">Ledergriffen</v>, glänzt ein kleines Schloss aus Messing.</p>
+
+<p>Ich hole den Schlüssel aus meiner Tasche. Meine Hände zittern wieder. Ich stecke ihn ins Schloss. Er passt.</p>
+
+<p>Der <v en="lid">Deckel</v> öffnet sich mit einem sanften Klick.</p>
+
+<p>Zuerst sehe ich nur Stoff — mehrere <v en="layers">Schichten</v> Tuch, sorgfältig darüber gelegt. Ich nehme sie eine nach der anderen weg. Und dann liegen sie vor mir: Bilder. <v en="paintings">Gemälde</v>. In Holzrahmen und ohne Rahmen, kleinere und größere. Ich zähle: es sind neun.</p>
+
+<p>Das erste, das ich in die Hand nehme, zeigt einen Wald bei Nebel. Die Farben sind <v en="muted">gedämpft</v>, aber lebendig. Auf der Rückseite steht mit Bleistift: <em>J. Berger, 1959</em>.</p>
+
+<p>Ich setze mich mitten auf den Dachboden, mit der Taschenlampe zwischen den Knien, und schaue mir jedes Bild einzeln an. Ein Fluss im Frühling. Ein Fenster mit weißen <v en="curtains">Vorhängen</v>. Eine alte Frau, die an einem Küchentisch sitzt und Kartoffeln <v en="peels">schält</v>. Und schließlich das größte Bild: ein Selbstporträt, ähnlich dem im Katalog — aber schöner, ehrlicher, <v en="more direct / immediate">unmittelbarer</v>.</p>
+
+<p>Ich weiß plötzlich, warum meine Großmutter nie darüber gesprochen hat. Solange sie es niemandem erzählte, blieb Josef in gewisser Weise bei ihr — hier, in diesem Haus, in diesem Dachboden, in diesen neun Bildern.</p>
+
+<p>Aber Josef hätte nicht gewollt, dass die Bilder für immer im Dunkeln bleiben. Das weiß ich, ohne dass es mir jemand sagen muss.</p>
+    `
+  },
+
+  {
+    title: "Das Geschenk",
+    number: "Kapitel 8",
+    body: `
+<p>Zwei Wochen später fahre ich zurück nach Berlin. Aber vorher besuche ich meine Großmutter im Pflegeheim.</p>
+
+<p>Das Zimmer ist hell und sauber. Meine Großmutter sitzt am Fenster und schaut in den Garten. Als ich hereinkomme, dreht sie sich um. Ihr Gesicht <v en="lights up">leuchtet auf</v>.</p>
+
+<p class="dialog">„Lena", sagt sie. „Mein liebes Kind."</p>
+
+<p>Ich setze mich neben sie und nehme ihre Hand. Sie ist dünn und warm. Draußen sitzt ein <v en="robin">Rotkehlchen</v> auf einem <v en="bare / leafless">kahlen</v> <v en="branch">Ast</v>.</p>
+
+<p>Ich habe lange <v en="thought about">überlegt</v>, wie ich anfangen soll. Am Ende ziehe ich einfach ein kleines Foto aus meiner Tasche und lege es in ihre Handfläche. Es ist ein Foto von einem der Bilder — der Wald bei Nebel, dem ersten, das ich in der Truhe gefunden habe.</p>
+
+<p>Meine Großmutter schaut es lange an. Sie sagt nichts. Aber <v en="tears">Tränen</v> laufen langsam über ihre <v en="cheeks">Wangen</v>. Ich habe sie noch nie weinen gesehen.</p>
+
+<p class="dialog">„Du hast sie gefunden", flüstert sie schließlich.</p>
+
+<p class="dialog">„Ja, Oma."</p>
+
+<p class="dialog">„Und was hast du damit gemacht?"</p>
+
+<p>Ich hole tief Luft. „Ich habe mit Frau Krause aus der Bibliothek gesprochen. Und mit einem Museum in Freiburg. Sie möchten die Bilder ausstellen — im Namen von Josef. Als eine kleine Ausstellung, im nächsten Jahr. Nur wenn du <v en="in agreement">einverstanden</v> bist."</p>
+
+<p>Sie hebt den Kopf und schaut mich an. In ihren Augen ist Angst, aber auch etwas anderes — eine leise <v en="relief">Erleichterung</v>, wie das erste Licht nach einer langen Nacht.</p>
+
+<p class="dialog">„Er wollte immer, dass die Welt sie sieht", sagt sie. „Ich habe zu lange gewartet."</p>
+
+<p class="dialog">„Du hast auf ihn gewartet", sage ich <v en="gently">sanft</v>. „Das ist etwas anderes."</p>
+
+<p>Sie drückt meine Hand. Wir schweigen eine Weile. Draußen fliegt das Rotkehlchen weg.</p>
+
+<p class="dialog">„Weißt du", sagt meine Großmutter dann, „als du klein warst, habe ich manchmal gedacht, dass du ihm <v en="resemble / look like">ähnlich</v> siehst. Um die Augen. Ich habe es nie gesagt, weil ich nicht wollte, dass jemand nach ihm fragt. Aber jetzt darfst du es wissen."</p>
+
+<p>Ich lächle. „Dann werde ich ihn kennenlernen — durch seine Bilder."</p>
+
+<p>Sie nickt langsam. „Ja. Das wäre schön."</p>
+
+<p>Auf dem Rückweg zum Bahnhof gehe ich noch einmal an dem alten Haus vorbei. Herr Vogel steht vor seiner Tür und hebt die Hand zum Gruß. Ich winke zurück.</p>
+
+<p>Der Zug nach Berlin fährt <v en="on time">pünktlich</v> ab. Draußen ziehen die dunklen Tannen des Schwarzwaldes wieder vorbei, aber diesmal ist der Nebel weg. Ich lehne mich zurück, schließe die Augen und denke an einen Maler, den ich nie getroffen habe — und der doch, auf seltsame Weise, ein Teil meiner Familie geworden ist.</p>
+
+<p class="end">— ENDE —</p>
+    `
+  }
+];
+
+const STORAGE_KEY = "lesebuch_ch_v1";
+
+const chaptersNav = document.getElementById("chapters");
+const reader = document.getElementById("reader");
+const bar = document.getElementById("barFill");
+const curCh = document.getElementById("curCh");
+const totCh = document.getElementById("totCh");
+const prevBtn = document.getElementById("prev");
+const nextBtn = document.getElementById("next");
+const toggleTr = document.getElementById("toggleTr");
+const tip = document.getElementById("tip");
+
+let current = 0;
+let showAll = false;
+
+// Convert <v en="...">word</v> markup into <span class="v" data-en="...">word</span>
+function processVocab(html) {
+  return html.replace(/<v en="([^"]+)">([\s\S]*?)<\/v>/g, (_, en, word) =>
+    `<span class="v" data-en="${en.replace(/"/g, "&quot;")}">${word}</span>`
+  );
+}
+
+function renderChapters() {
+  chaptersNav.innerHTML = "";
+  CHAPTERS.forEach((ch, i) => {
+    const b = document.createElement("button");
+    b.className = "chip" + (i === current ? " active" : "");
+    b.textContent = (i + 1) + "";
+    b.title = ch.title;
+    b.addEventListener("click", () => go(i));
+    chaptersNav.appendChild(b);
+  });
+  totCh.textContent = CHAPTERS.length;
+}
+
+function render() {
+  const ch = CHAPTERS[current];
+  reader.innerHTML =
+    `<span class="kap">${ch.number}</span>
+     <h2>${ch.title}</h2>
+     ${processVocab(ch.body)}`;
+  reader.classList.toggle("showAll", showAll);
+  curCh.textContent = current + 1;
+  bar.style.width = ((current + 1) / CHAPTERS.length * 100) + "%";
+  Array.from(chaptersNav.children).forEach((c, i) =>
+    c.classList.toggle("active", i === current)
+  );
+  prevBtn.disabled = current === 0;
+  nextBtn.disabled = current === CHAPTERS.length - 1;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  try { localStorage.setItem(STORAGE_KEY, String(current)); } catch (_) {}
+  hideTip();
+}
+
+function go(i) {
+  if (i < 0 || i >= CHAPTERS.length) return;
+  current = i;
+  render();
+}
+
+prevBtn.addEventListener("click", () => go(current - 1));
+nextBtn.addEventListener("click", () => go(current + 1));
+toggleTr.addEventListener("click", () => {
+  showAll = !showAll;
+  toggleTr.classList.toggle("on", showAll);
+  toggleTr.textContent = showAll ? "EN aus" : "EN alle";
+  reader.classList.toggle("showAll", showAll);
+  hideTip();
+});
+
+// Vocabulary tooltip
+let openEl = null;
+function hideTip() {
+  tip.style.display = "none";
+  if (openEl) { openEl.classList.remove("open"); openEl = null; }
+}
+function showTip(el) {
+  if (openEl && openEl !== el) openEl.classList.remove("open");
+  openEl = el;
+  el.classList.add("open");
+  tip.textContent = el.getAttribute("data-en");
+  tip.style.display = "block";
+  const r = el.getBoundingClientRect();
+  const tR = tip.getBoundingClientRect();
+  let left = r.left + window.scrollX + r.width / 2;
+  const half = tR.width / 2;
+  const margin = 8;
+  if (left - half < margin) left = half + margin;
+  const maxRight = window.scrollX + document.documentElement.clientWidth - margin;
+  if (left + half > maxRight) left = maxRight - half;
+  tip.style.left = left + "px";
+  tip.style.top = (r.top + window.scrollY - 8) + "px";
+}
+
+reader.addEventListener("click", (e) => {
+  const v = e.target.closest(".v");
+  if (v) {
+    e.stopPropagation();
+    if (openEl === v) { hideTip(); return; }
+    showTip(v);
+  } else {
+    hideTip();
+  }
+});
+document.addEventListener("click", (e) => {
+  if (!e.target.closest("#reader") && !e.target.closest("#tip")) hideTip();
+});
+window.addEventListener("scroll", hideTip, { passive: true });
+window.addEventListener("resize", hideTip);
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowRight") go(current + 1);
+  else if (e.key === "ArrowLeft") go(current - 1);
+  else if (e.key === "Escape") hideTip();
+});
+
+// Init
+try {
+  const saved = parseInt(localStorage.getItem(STORAGE_KEY) || "0", 10);
+  if (!isNaN(saved) && saved >= 0 && saved < CHAPTERS.length) current = saved;
+} catch (_) {}
+renderChapters();
+render();
+</script>
+</body>
+</html>
