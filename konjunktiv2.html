@@ -1,348 +1,401 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" data-theme="auto">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Konjunktiv II — Lernkarten</title>
+<title>Konjunktiv II</title>
+<meta name="description" content="Lernkarten für den deutschen Konjunktiv II — Erklärungen auf einfachem Deutsch." />
+<!--
+  Design philosophy — "Stille Grammatik" (Quiet Grammar)
+  Editorial paper-and-ink calm. A literary serif (Fraunces) carries the German;
+  a quiet sans (Inter) carries the meaning. One evergreen accent, one terracotta
+  for review. Whitespace does the work; motion is a single deliberate page-turn.
+  Light and dark are designed as a pair. Meticulously crafted, master-level restraint.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;450;500;600&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --bg: #0b0d1a;
-    --fg: #e7f6ff;
-    --accent: #6cffae;
-    --danger: #ff4d6d;
-    --coin: #ffd93d;
-    --panel: #11142a;
-    --line: #1c2140;
-    --line2: #2a335f;
+    /* Light — warm paper & ink */
+    --paper:   #F1EDE3;
+    --surface: #FCFAF4;
+    --surface-2:#F6F2E9;
+    --ink:     #211F1A;
+    --muted:   #605B4E;
+    --faint:   #8A8577;
+    --line:    #E1DACB;
+    --line-2:  #D3CBB8;
+    --accent:  #2E6A5B;   /* evergreen  — known / primary */
+    --accent-ink:#173a32;
+    --review:  #A9542F;   /* terracotta — review again */
+    --shadow:  0 1px 2px rgba(40,34,20,.04), 0 12px 34px rgba(40,34,20,.10);
+    --shadow-sm:0 1px 2px rgba(40,34,20,.05), 0 4px 14px rgba(40,34,20,.07);
+    --radius:  20px;
+    --radius-sm:11px;
+    --flip: .55s cubic-bezier(.4,.05,.2,1);
   }
+  :root[data-theme="dark"] {
+    --paper:   #131417;
+    --surface: #1D1F23;
+    --surface-2:#24272C;
+    --ink:     #ECE7DB;
+    --muted:   #A6A093;
+    --faint:   #7C7668;
+    --line:    #2C2F35;
+    --line-2:  #3A3E45;
+    --accent:  #6FC1AC;
+    --accent-ink:#0c1c18;
+    --review:  #E0906B;
+    --shadow:  0 1px 2px rgba(0,0,0,.30), 0 16px 40px rgba(0,0,0,.45);
+    --shadow-sm:0 1px 2px rgba(0,0,0,.30), 0 6px 18px rgba(0,0,0,.35);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root[data-theme="auto"] {
+      --paper:   #131417;
+      --surface: #1D1F23;
+      --surface-2:#24272C;
+      --ink:     #ECE7DB;
+      --muted:   #A6A093;
+      --faint:   #7C7668;
+      --line:    #2C2F35;
+      --line-2:  #3A3E45;
+      --accent:  #6FC1AC;
+      --accent-ink:#0c1c18;
+      --review:  #E0906B;
+      --shadow:  0 1px 2px rgba(0,0,0,.30), 0 16px 40px rgba(0,0,0,.45);
+      --shadow-sm:0 1px 2px rgba(0,0,0,.30), 0 6px 18px rgba(0,0,0,.35);
+    }
+  }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body {
-    min-height: 100%;
-    background: var(--bg);
-    color: var(--fg);
-    font-family: "Press Start 2P", ui-monospace, "Courier New", monospace;
-    -webkit-text-size-adjust: 100%;
-  }
+  html { -webkit-text-size-adjust: 100%; }
   body {
+    min-height: 100dvh;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    line-height: 1.5;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 14px;
-    padding: 16px 12px 40px;
+    padding: clamp(16px, 4vw, 40px) 16px 40px;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
-  header {
-    width: 100%;
-    max-width: 560px;
-    text-align: center;
-    padding-top: 6px;
-  }
-  h1 {
-    font-size: 16px;
-    letter-spacing: 2px;
-    color: var(--accent);
-    line-height: 1.5;
-  }
-  .subtitle {
-    margin-top: 8px;
-    font-size: 9px;
-    opacity: 0.6;
-    letter-spacing: 1px;
-    line-height: 1.6;
-  }
+  .wrap { width: 100%; max-width: 640px; display: flex; flex-direction: column; gap: 20px; }
 
-  /* category filter */
-  #filters {
-    width: 100%;
-    max-width: 560px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    justify-content: center;
+  /* ---------- Masthead ---------- */
+  header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+  .brand .eyebrow {
+    font-size: 11px; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--faint); font-weight: 500; margin-bottom: 6px;
   }
+  .brand h1 {
+    font-family: "Fraunces", Georgia, serif;
+    font-optical-sizing: auto;
+    font-weight: 500; font-size: clamp(30px, 8vw, 44px); line-height: 1.02;
+    letter-spacing: -.01em; color: var(--ink);
+  }
+  .brand h1 em { font-style: italic; color: var(--accent); }
+  .icon-btn {
+    flex: none;
+    width: 44px; height: 44px; border-radius: 12px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--surface); color: var(--muted);
+    border: 1px solid var(--line); cursor: pointer;
+    transition: color .18s, border-color .18s, background .18s, transform .06s;
+  }
+  .icon-btn:hover { color: var(--ink); border-color: var(--line-2); }
+  .icon-btn:active { transform: translateY(1px); }
+  .icon-btn svg { width: 20px; height: 20px; }
+
+  /* ---------- Category filter ---------- */
+  .filters {
+    display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px;
+    scrollbar-width: none; -ms-overflow-style: none;
+    scroll-snap-type: x proximity;
+  }
+  .filters::-webkit-scrollbar { display: none; }
   .chip {
-    font: inherit;
-    font-size: 8px;
-    letter-spacing: 0.5px;
-    padding: 7px 9px;
-    background: var(--panel);
-    color: var(--fg);
-    border: 2px solid var(--line);
-    border-radius: 4px;
+    flex: none; scroll-snap-align: start;
+    font-family: inherit; font-size: 13px; font-weight: 500;
+    padding: 9px 14px; min-height: 40px;
+    border-radius: 999px; cursor: pointer; white-space: nowrap;
+    background: var(--surface); color: var(--muted);
+    border: 1px solid var(--line);
+    transition: color .18s, border-color .18s, background .18s;
+  }
+  .chip:hover { color: var(--ink); border-color: var(--line-2); }
+  .chip[aria-pressed="true"] {
+    background: var(--ink); color: var(--paper); border-color: var(--ink);
+  }
+  :root[data-theme="dark"] .chip[aria-pressed="true"],
+  :root[data-theme="auto"] .chip[aria-pressed="true"] { color: var(--surface); }
+
+  /* ---------- Progress ---------- */
+  .progress { display: flex; align-items: center; gap: 14px; }
+  .track { flex: 1; height: 5px; border-radius: 999px; background: var(--line); overflow: hidden; }
+  .track > span { display: block; height: 100%; width: 0; border-radius: 999px;
+    background: var(--accent); transition: width .4s cubic-bezier(.4,0,.2,1); }
+  .progress .meta { display: flex; align-items: baseline; gap: 10px; font-size: 12.5px; color: var(--muted); }
+  .progress .meta b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .progress .learned { color: var(--accent); font-weight: 600; }
+
+  /* ---------- Card ---------- */
+  .stage { perspective: 1800px; }
+  .card {
+    position: relative; width: 100%; min-height: 340px;
+    transform-style: preserve-3d; transition: transform var(--flip);
     cursor: pointer;
-    text-transform: uppercase;
-    transition: transform 0.05s;
   }
-  .chip:active { transform: translateY(1px); }
-  .chip.active {
-    background: var(--accent);
-    color: #06121a;
-    border-color: var(--accent);
-  }
+  .card.flipped { transform: rotateY(180deg); }
+  .card:focus-visible { outline: none; }
+  .card:focus-visible .face { box-shadow: var(--shadow), 0 0 0 3px color-mix(in srgb, var(--accent) 55%, transparent); }
 
-  /* progress */
-  #progress {
-    width: 100%;
-    max-width: 560px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 9px;
-    letter-spacing: 1px;
-    opacity: 0.85;
-  }
-  #progress .known { color: var(--accent); }
-
-  #bar {
-    width: 100%;
-    max-width: 560px;
-    height: 6px;
-    background: var(--line);
-    border-radius: 3px;
+  .face {
+    position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    display: flex; flex-direction: column;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: clamp(22px, 5vw, 34px);
     overflow: hidden;
   }
-  #barFill {
-    height: 100%;
-    width: 0%;
-    background: var(--accent);
-    transition: width 0.25s;
+  .face::before { /* category accent hairline */
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    background: var(--cat, var(--accent)); opacity: .9;
   }
+  .face-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: auto; }
+  .cat-pill {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 11px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600;
+    color: var(--cat, var(--accent));
+  }
+  .cat-pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--cat, var(--accent)); }
+  .side-tag { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); font-weight: 500; }
 
-  /* card */
-  #cardWrap {
-    width: 100%;
-    max-width: 560px;
-    perspective: 1200px;
+  .face-body { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 16px; padding: 18px 0; }
+
+  .prompt {
+    font-family: "Fraunces", Georgia, serif; font-optical-sizing: auto;
+    font-weight: 400; font-size: clamp(23px, 5.6vw, 31px); line-height: 1.28;
+    letter-spacing: -.005em; color: var(--ink); text-wrap: balance;
   }
-  #card {
-    position: relative;
-    width: 100%;
-    min-height: 300px;
-    cursor: pointer;
-    transform-style: preserve-3d;
-    transition: transform 0.45s;
+  .answer {
+    font-family: "Fraunces", Georgia, serif; font-optical-sizing: auto;
+    font-weight: 500; font-size: clamp(21px, 5vw, 27px); line-height: 1.3;
+    color: var(--accent); letter-spacing: -.005em; text-wrap: balance;
   }
-  #card.flipped { transform: rotateY(180deg); }
-  .face {
-    position: absolute;
-    inset: 0;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    padding: 24px 20px;
-    background: var(--panel);
-    border: 3px solid var(--line);
-    border-radius: 8px;
-    box-shadow: 0 0 0 4px #06070f, 0 12px 32px rgba(0,0,0,0.55);
-    text-align: center;
+  :root[data-theme="dark"] .answer, :root[data-theme="auto"] .answer { color: var(--accent); }
+  .explain {
+    font-size: clamp(15px, 3.6vw, 16.5px); line-height: 1.62; color: var(--ink);
+    max-width: 46ch;
   }
-  .face .tag {
-    position: absolute;
-    top: 10px;
-    left: 12px;
-    font-size: 7px;
-    letter-spacing: 1px;
-    color: var(--coin);
-    text-transform: uppercase;
-    opacity: 0.85;
+  .explain .lead { color: var(--muted); }
+
+  .face-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .hint-flip { font-size: 12.5px; color: var(--faint); display: inline-flex; align-items: center; gap: 7px; }
+  .hint-flip svg { width: 15px; height: 15px; }
+
+  .en-toggle {
+    font-family: inherit; font-size: 12.5px; font-weight: 500;
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 8px 12px; min-height: 38px; border-radius: 9px;
+    background: transparent; color: var(--muted);
+    border: 1px solid var(--line); cursor: pointer;
+    transition: color .18s, border-color .18s;
   }
-  .face .side {
-    position: absolute;
-    top: 10px;
-    right: 12px;
-    font-size: 7px;
-    letter-spacing: 1px;
-    opacity: 0.4;
-    text-transform: uppercase;
-  }
-  .front-face .prompt {
-    font-size: 13px;
-    line-height: 1.9;
-    color: var(--fg);
-  }
-  .front-face .hintline {
-    font-size: 8px;
-    opacity: 0.45;
-    letter-spacing: 1px;
-  }
-  .back-face {
-    transform: rotateY(180deg);
-    justify-content: flex-start;
-    padding-top: 34px;
-  }
-  .back-face .answer {
-    font-size: 12px;
-    line-height: 1.9;
-    color: var(--accent);
-  }
-  .back-face .explain {
-    font-size: 11px;
-    line-height: 1.95;
-    color: var(--fg);
-    opacity: 0.95;
-  }
-  .back-face .english {
-    font-size: 9px;
-    line-height: 1.8;
-    color: #8fa0d6;
-    opacity: 0.85;
-    border-top: 1px dashed var(--line2);
-    padding-top: 12px;
-    margin-top: 4px;
+  .en-toggle:hover { color: var(--ink); border-color: var(--line-2); }
+  .en-toggle svg { width: 15px; height: 15px; }
+  .english {
+    margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line-2);
+    font-size: 14px; line-height: 1.55; color: var(--muted);
     display: none;
   }
-  .back-face .english.show { display: block; }
-  .enBtn {
-    font: inherit;
-    font-size: 8px;
-    letter-spacing: 0.5px;
-    padding: 6px 10px;
-    background: transparent;
-    color: #8fa0d6;
-    border: 1px solid var(--line2);
-    border-radius: 4px;
-    cursor: pointer;
-    text-transform: uppercase;
-  }
-  .enBtn:active { transform: translateY(1px); }
+  .english.show { display: block; }
+  .english .flag { font-weight: 600; color: var(--faint); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; display: block; margin-bottom: 4px; }
 
-  /* controls */
-  #controls {
-    width: 100%;
-    max-width: 560px;
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-    flex-wrap: wrap;
+  /* ---------- Rating ---------- */
+  .rate { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .rate button {
+    font-family: inherit; font-size: 14px; font-weight: 500;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 50px; padding: 0 16px; border-radius: 13px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+    transition: border-color .18s, background .18s, transform .06s, color .18s;
   }
-  button.ctrl {
-    font: inherit;
-    font-size: 10px;
-    padding: 12px 14px;
-    background: var(--panel);
-    color: var(--fg);
-    border: 2px solid var(--line);
-    border-radius: 5px;
-    cursor: pointer;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    flex: 1 1 0;
-    min-width: 70px;
-  }
-  button.ctrl:active { transform: translateY(1px); }
-  button.ctrl.primary {
-    background: var(--accent);
-    color: #06121a;
-    border-color: var(--accent);
-  }
+  .rate button svg { width: 18px; height: 18px; }
+  .rate button:active { transform: translateY(1px); }
+  .rate .again:hover { border-color: var(--review); color: var(--review); }
+  .rate .got:hover { border-color: var(--accent); color: var(--accent); }
+  .rate .got { background: var(--accent); color: var(--paper); border-color: var(--accent); }
+  :root[data-theme="dark"] .rate .got, :root[data-theme="auto"] .rate .got { color: var(--accent-ink); }
+  .rate .got:hover { color: var(--accent-ink); filter: brightness(1.04); }
 
-  #marks {
-    width: 100%;
-    max-width: 560px;
-    display: flex;
-    gap: 8px;
-    justify-content: center;
+  /* ---------- Deck controls ---------- */
+  .controls { display: flex; align-items: center; justify-content: center; gap: 10px; }
+  .nav-btn {
+    flex: none; width: 52px; height: 52px; border-radius: 14px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--surface); color: var(--ink);
+    border: 1px solid var(--line); cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: border-color .18s, transform .06s, color .18s;
   }
-  button.mark {
-    font: inherit;
-    font-size: 9px;
-    padding: 11px 12px;
-    border-radius: 5px;
-    cursor: pointer;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    flex: 1 1 0;
-    border: 2px solid var(--line);
-    background: var(--panel);
-    color: var(--fg);
+  .nav-btn:hover { border-color: var(--line-2); }
+  .nav-btn:active { transform: translateY(1px); }
+  .nav-btn svg { width: 22px; height: 22px; }
+  .ghost-btn {
+    font-family: inherit; font-size: 13.5px; font-weight: 500;
+    display: inline-flex; align-items: center; gap: 8px;
+    height: 44px; padding: 0 16px; border-radius: 12px;
+    background: transparent; color: var(--muted);
+    border: 1px solid var(--line); cursor: pointer;
+    transition: color .18s, border-color .18s;
   }
-  button.mark:active { transform: translateY(1px); }
-  button.mark.got { border-color: var(--accent); color: var(--accent); }
-  button.mark.again { border-color: var(--danger); color: var(--danger); }
+  .ghost-btn:hover { color: var(--ink); border-color: var(--line-2); }
+  .ghost-btn svg { width: 16px; height: 16px; }
+  .spring { flex: 1; }
 
-  #hint {
-    font-size: 8px;
-    opacity: 0.5;
-    letter-spacing: 1px;
-    text-align: center;
-    line-height: 1.9;
-    max-width: 560px;
-  }
-  #hint a, footer a { color: var(--accent); text-decoration: none; }
+  /* ---------- Footer ---------- */
   footer {
-    font-size: 8px;
-    opacity: 0.6;
-    letter-spacing: 1px;
-    text-align: center;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    flex-wrap: wrap; margin-top: 4px;
+    font-size: 12.5px; color: var(--faint);
+  }
+  footer a, footer button.linklike {
+    color: var(--muted); text-decoration: none; font: inherit; background: none; border: none; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px; padding: 6px 2px; min-height: 34px;
+  }
+  footer a:hover, footer button.linklike:hover { color: var(--ink); }
+  footer svg { width: 15px; height: 15px; }
+  .kbd-hint { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  kbd {
+    font-family: "Inter", monospace; font-size: 11px; color: var(--muted);
+    background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: 6px; padding: 2px 6px; min-width: 18px; text-align: center;
+  }
+
+  @media (max-width: 460px) {
+    .kbd-hint { display: none; }
+    .face-foot { flex-direction: column-reverse; align-items: flex-start; gap: 10px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card { transition: none; }
+    .track > span { transition: none; }
+    * { scroll-behavior: auto; }
   }
 </style>
 </head>
 <body>
-  <header>
-    <h1>Konjunktiv II<br/>Lernkarten</h1>
-    <div class="subtitle">
-      Erklärungen auf einfachem Deutsch · Englisch nur als Hilfe<br/>
-      Karte tippen zum Umdrehen
-    </div>
-  </header>
+  <div class="wrap">
 
-  <div id="filters"></div>
-
-  <div id="progress">
-    <span id="count">Karte 1 / 100</span>
-    <span class="known" id="known">✓ 0 gelernt</span>
-  </div>
-  <div id="bar"><div id="barFill"></div></div>
-
-  <div id="cardWrap">
-    <div id="card">
-      <div class="face front-face">
-        <span class="tag" id="frontTag"></span>
-        <span class="side">Frage</span>
-        <div class="prompt" id="frontText"></div>
-        <div class="hintline">Tippen oder Leertaste zum Umdrehen</div>
+    <header>
+      <div class="brand">
+        <div class="eyebrow">Deutsche Grammatik · Lernkarten</div>
+        <h1>Konjunktiv&nbsp;<em>II</em></h1>
       </div>
-      <div class="face back-face">
-        <span class="tag" id="backTag"></span>
-        <span class="side">Antwort</span>
-        <div class="answer" id="backAnswer"></div>
-        <div class="explain" id="backExplain"></div>
-        <button class="enBtn" id="enBtn" type="button">🇬🇧 Englisch zeigen</button>
-        <div class="english" id="backEnglish"></div>
+      <button class="icon-btn" id="themeBtn" type="button" aria-label="Farbschema wechseln" title="Hell / Dunkel">
+        <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg>
+      </button>
+    </header>
+
+    <nav class="filters" id="filters" aria-label="Kategorie wählen"></nav>
+
+    <div class="progress">
+      <div class="track" role="progressbar" aria-label="Lernfortschritt" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="track"><span id="trackFill"></span></div>
+      <div class="meta">
+        <span><b id="pos">1</b> / <b id="total">100</b></span>
+        <span class="learned" id="learned">✓ 0</span>
       </div>
     </div>
-  </div>
 
-  <div id="marks">
-    <button class="mark again" id="againBtn" type="button">↻ Nochmal üben</button>
-    <button class="mark got" id="gotBtn" type="button">✓ Verstanden</button>
-  </div>
+    <div class="stage">
+      <div class="card" id="card" tabindex="0" role="button" aria-label="Karte umdrehen">
+        <!-- FRONT -->
+        <div class="face front" id="front">
+          <div class="face-head">
+            <span class="cat-pill"><span class="dot"></span><span id="frontCat">Kategorie</span></span>
+            <span class="side-tag">Frage</span>
+          </div>
+          <div class="face-body">
+            <div class="prompt" id="promptText"></div>
+          </div>
+          <div class="face-foot">
+            <span class="hint-flip">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>
+              Tippen oder <kbd style="margin:0 2px">Leertaste</kbd> zum Umdrehen
+            </span>
+          </div>
+        </div>
+        <!-- BACK -->
+        <div class="face back" id="back" style="transform: rotateY(180deg);">
+          <div class="face-head">
+            <span class="cat-pill"><span class="dot"></span><span id="backCat">Kategorie</span></span>
+            <span class="side-tag">Antwort</span>
+          </div>
+          <div class="face-body">
+            <div class="answer" id="answerText"></div>
+            <div class="explain"><span class="lead" id="explainText"></span></div>
+            <div class="english" id="englishBox">
+              <span class="flag">English</span>
+              <span id="englishText"></span>
+            </div>
+          </div>
+          <div class="face-foot">
+            <button class="en-toggle" id="enToggle" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18"/></svg>
+              <span id="enToggleLabel">Englisch zeigen</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  <div id="controls">
-    <button class="ctrl" id="prevBtn" type="button">◀ Zurück</button>
-    <button class="ctrl primary" id="flipBtn" type="button">Umdrehen</button>
-    <button class="ctrl" id="nextBtn" type="button">Weiter ▶</button>
-    <button class="ctrl" id="shuffleBtn" type="button">⤮ Mischen</button>
-  </div>
+    <div class="rate">
+      <button class="again" id="againBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+        Nochmal üben
+      </button>
+      <button class="got" id="gotBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+        Verstanden
+      </button>
+    </div>
 
-  <div id="hint">
-    Tasten: ← → blättern · Leertaste/↑ umdrehen · S mischen · G verstanden · N nochmal
-  </div>
+    <div class="controls">
+      <button class="nav-btn" id="prevBtn" type="button" aria-label="Vorherige Karte">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <button class="ghost-btn spring" id="shuffleBtn" type="button" style="justify-content:center;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="M4 4l5 5"/></svg>
+        Mischen
+      </button>
+      <button class="nav-btn" id="nextBtn" type="button" aria-label="Nächste Karte">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+    </div>
 
-  <footer>
-    <a href="index.html">← Zurück zum Spiel</a> · <span id="resetBtn" style="cursor:pointer;text-decoration:underline;">Fortschritt löschen</span>
-  </footer>
+    <footer>
+      <a href="index.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+        Zum Spiel
+      </a>
+      <span class="kbd-hint">
+        <kbd>←</kbd><kbd>→</kbd> blättern <kbd>Space</kbd> umdrehen <kbd>S</kbd> mischen
+      </span>
+      <button class="linklike" id="resetBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>
+        Fortschritt löschen
+      </button>
+    </footer>
+  </div>
 
 <script>
 (() => {
-  // ---- Card data -----------------------------------------------------------
-  // { front: German question, back: German answer, explain: simple German,
-  //   en: optional English fallback, cat: category }
+  // ---- Card data (German prompt · German answer · simple-German explanation · optional EN) ----
   const CARDS = [
-    // ---------- Bildung ----------
     { cat:"Bildung", front:"Was ist der Konjunktiv II?", back:"Eine Form für etwas Unwirkliches.", explain:"Er zeigt etwas, das nicht real ist: Wünsche, Träume und höfliche Bitten.", en:"Konjunktiv II expresses unreal/hypothetical things, wishes and polite requests." },
     { cat:"Bildung", front:"Wie bildet man den Konjunktiv II am einfachsten?", back:"Mit „würde“ + Infinitiv.", explain:"Beispiel: „Ich würde gehen.“ Das ist die leichteste Form.", en:"Easiest form: würde + infinitive, e.g. „Ich würde gehen“ (I would go)." },
     { cat:"Bildung", front:"Woher kommt die echte (kurze) Form?", back:"Vom Präteritum.", explain:"Man nimmt den Präteritum-Stamm und macht oft einen Umlaut: a→ä, o→ö, u→ü.", en:"The real short form is built from the past-tense stem, often adding an umlaut." },
@@ -356,7 +409,6 @@
     { cat:"Bildung", front:"Unterschied: Präteritum oder Konjunktiv II?", back:"„hatte“ ist real, „hätte“ ist unwirklich.", explain:"„Ich hatte Zeit“ = Vergangenheit. „Ich hätte Zeit“ = unwirklich. Der Umlaut macht den Unterschied.", en:"'hatte' (real past) vs 'hätte' (would have, unreal)." },
     { cat:"Bildung", front:"Kann man „würde“ und die kurze Form mischen?", back:"Ja, sehr oft.", explain:"Kurze Form bei haben/sein/Modalverben, „würde“ bei anderen: „Wenn ich Zeit hätte, würde ich kommen.“", en:"Yes — short form for haben/sein/modals, würde for other verbs." },
 
-    // ---------- Wichtige Verben ----------
     { cat:"Verben", front:"Konjunktiv II von „sein“ – ich?", back:"ich wäre", explain:"Beispiel: „Ich wäre gern reich.“ Bedeutung: Ich bin es nicht, aber ich wünsche es.", en:"sein: ich wäre (I would be)." },
     { cat:"Verben", front:"Konjugiere „sein“ im Konjunktiv II.", back:"wäre · wärst · wäre · wären · wärt · wären", explain:"ich wäre, du wärst, er/sie/es wäre, wir wären, ihr wärt, sie/Sie wären.", en:"sein conjugation in Konjunktiv II." },
     { cat:"Verben", front:"Konjunktiv II von „haben“ – ich?", back:"ich hätte", explain:"Beispiel: „Ich hätte gern einen Kaffee.“ Das ist eine höfliche Bitte.", en:"haben: ich hätte (I'd have / I'd like)." },
@@ -370,7 +422,6 @@
     { cat:"Verben", front:"„___ du so nett?“ (sein, Bitte)", back:"Wärst du so nett?", explain:"Eine sehr höfliche Bitte, oft so: „Wärst du so nett und hilfst mir?“", en:"Wärst du so nett…? = Would you be so kind…?" },
     { cat:"Verben", front:"Welche drei Verben sind am wichtigsten?", back:"wäre, hätte, würde", explain:"Mit diesen drei Wörtern bildet man die meisten Sätze. Lerne sie zuerst!", en:"wäre, hätte, würde — learn these three first." },
 
-    // ---------- Modalverben ----------
     { cat:"Modalverben", front:"Konjunktiv II von „können“ – ich?", back:"ich könnte", explain:"Beispiel: „Könntest du mir helfen?“ – eine höfliche Bitte.", en:"können → könnte (could)." },
     { cat:"Modalverben", front:"Konjunktiv II von „müssen“ – ich?", back:"ich müsste", explain:"Beispiel: „Ich müsste eigentlich lernen.“ Bedeutung: Es ist nötig, aber vielleicht tue ich es nicht.", en:"müssen → müsste (would have to)." },
     { cat:"Modalverben", front:"Konjunktiv II von „dürfen“ – ich?", back:"ich dürfte", explain:"Beispiel: „Dürfte ich kurz stören?“ – sehr höflich um Erlaubnis fragen.", en:"dürfen → dürfte (might / would be allowed)." },
@@ -384,7 +435,6 @@
     { cat:"Modalverben", front:"„Ich ___ jetzt eigentlich gehen.“ (müssen)", back:"Ich müsste jetzt eigentlich gehen.", explain:"Bedeutung: Es ist nötig, aber ich bin nicht sicher oder ich will nicht.", en:"Ich müsste… = I really ought to / should…" },
     { cat:"Modalverben", front:"Wie macht man eine sehr höfliche Frage?", back:"Mit „Könnten/Dürfte/Würden“.", explain:"Beispiele: „Könnten Sie…?“, „Dürfte ich…?“, „Würden Sie…?“ So klingt man freundlich.", en:"Use Könnten/Dürfte/Würden for very polite questions." },
 
-    // ---------- Starke Verben ----------
     { cat:"Starke Verben", front:"Konjunktiv II von „geben“?", back:"gäbe", explain:"Stamm „gab“ → „gäb-“. Beispiel: „Es gäbe viel zu tun.“", en:"geben → gäbe (would give)." },
     { cat:"Starke Verben", front:"Konjunktiv II von „kommen“?", back:"käme", explain:"Stamm „kam“ → „käm-“. Beispiel: „Er käme gern, aber er hat keine Zeit.“", en:"kommen → käme (would come)." },
     { cat:"Starke Verben", front:"Konjunktiv II von „gehen“?", back:"ginge", explain:"Stamm „ging“ → „ging-“. Beispiel: „Ich ginge jetzt lieber nach Hause.“", en:"gehen → ginge (would go)." },
@@ -402,7 +452,6 @@
     { cat:"Starke Verben", front:"Konjunktiv II von „essen“?", back:"äße", explain:"Stamm „aß“ → „äß-“. Beispiel: „Ich äße jetzt gern etwas.“", en:"essen → äße (would eat)." },
     { cat:"Starke Verben", front:"Warum nutzt man oft „würde“ statt der kurzen Form?", back:"Manche kurze Formen klingen alt.", explain:"Wörter wie „hülfe“ oder „stürbe“ klingen altmodisch. Im Alltag sagt man „würde helfen“.", en:"Some old short forms sound archaic; spoken German prefers würde + infinitive." },
 
-    // ---------- Vergangenheit ----------
     { cat:"Vergangenheit", front:"Wie bildet man den Konjunktiv II der Vergangenheit?", back:"hätte / wäre + Partizip II", explain:"Beispiele: „Ich hätte gemacht“, „Ich wäre gegangen“.", en:"Past Konjunktiv II = hätte/wäre + past participle." },
     { cat:"Vergangenheit", front:"Wann nimmt man „wäre“ (nicht „hätte“)?", back:"Bei Bewegung und Veränderung.", explain:"Bei Verben wie gehen, kommen, fahren, bleiben, sein. Beispiel: „Ich wäre gekommen.“", en:"Use wäre with verbs of motion/change (gehen, kommen, bleiben, sein…)." },
     { cat:"Vergangenheit", front:"„Ich ___ das gemacht.“ (Vergangenheit)", back:"Ich hätte das gemacht.", explain:"Bedeutung: In der Vergangenheit war es anders. Ich wünsche, ich hätte es getan.", en:"Ich hätte das gemacht = I would have done that." },
@@ -416,7 +465,6 @@
     { cat:"Vergangenheit", front:"„Wir ___ fast den Zug verpasst.“ (haben)", back:"Wir hätten fast den Zug verpasst.", explain:"Es ist gut gegangen, aber es war knapp.", en:"Wir hätten fast den Zug verpasst = We almost missed the train." },
     { cat:"Vergangenheit", front:"Konjunktiv II Vergangenheit von „sehen“ – ich?", back:"Ich hätte gesehen.", explain:"Beispiel: „Ich hätte den Film gern gesehen.“", en:"Ich hätte gesehen = I would have seen." },
 
-    // ---------- Gebrauch ----------
     { cat:"Gebrauch", front:"Wie drückt man einen Wunsch aus?", back:"Mit „Ich wünschte, …“", explain:"Beispiel: „Ich wünschte, ich hätte mehr Geld.“ Der Wunsch ist nicht real.", en:"For wishes: 'Ich wünschte, ich hätte mehr Geld.'" },
     { cat:"Gebrauch", front:"Wie macht man einen Wunsch stärker?", back:"Mit „wenn … nur“.", explain:"Beispiel: „Wenn ich nur mehr Zeit hätte!“ Das Wort „nur“ macht den Wunsch stärker.", en:"Wenn ich nur mehr Zeit hätte! = If only I had more time!" },
     { cat:"Gebrauch", front:"Was ist ein irrealer Bedingungssatz?", back:"Ein „wenn“-Satz, der nicht real ist.", explain:"Beispiel: „Wenn ich reich wäre, würde ich reisen.“ Ich bin aber nicht reich.", en:"Unreal conditional: 'Wenn ich reich wäre, würde ich reisen.'" },
@@ -438,7 +486,6 @@
     { cat:"Gebrauch", front:"„___ Sie vielleicht einen Moment Zeit?“ (haben)", back:"Hätten Sie vielleicht einen Moment Zeit?", explain:"Eine sehr höfliche Frage, oft zu fremden Menschen.", en:"Hätten Sie… Zeit? = Would you have a moment?" },
     { cat:"Gebrauch", front:"Warum klingt der Konjunktiv II höflich?", back:"Er ist nicht direkt.", explain:"Statt „Gib mir das“ sagt man „Könntest du mir das geben?“ Das ist netter.", en:"It's indirect, so it sounds more respectful than a command." },
 
-    // ---------- Beispielsätze ----------
     { cat:"Beispielsätze", front:"Übersetze: „I would like a coffee.“", back:"Ich hätte gern einen Kaffee.", explain:"Auch möglich: „Ich möchte einen Kaffee.“ Sehr höflich im Café.", en:"Ich hätte gern einen Kaffee." },
     { cat:"Beispielsätze", front:"Übersetze: „If I had time, I would help you.“", back:"Wenn ich Zeit hätte, würde ich dir helfen.", explain:"Kurze Form „hätte“ im wenn-Satz, „würde“ im Hauptsatz.", en:"Wenn ich Zeit hätte, würde ich dir helfen." },
     { cat:"Beispielsätze", front:"Übersetze: „Could you help me, please?“", back:"Könntest du mir bitte helfen?", explain:"Formell: „Könnten Sie mir bitte helfen?“", en:"Könntest/Könnten du/Sie mir bitte helfen?" },
@@ -457,146 +504,149 @@
     { cat:"Beispielsätze", front:"Übersetze: „It would be nice to travel more.“", back:"Es wäre schön, mehr zu reisen.", explain:"„Es wäre schön, …“ für eine angenehme, unwirkliche Idee.", en:"Es wäre schön, mehr zu reisen." },
   ];
 
-  // ---- State ---------------------------------------------------------------
+  // Category accent colors (subtle, consistent in both themes)
+  const CAT_COLORS = {
+    "Bildung":       "#2E6A5B",
+    "Verben":        "#3E6DA6",
+    "Modalverben":   "#8A5AA6",
+    "Starke Verben": "#A9542F",
+    "Vergangenheit": "#9A7D2E",
+    "Gebrauch":      "#4B7A8F",
+    "Beispielsätze": "#7A6B4E",
+  };
+
+  // ---- State ----
   const KNOWN_KEY = "konjunktiv2_known";
+  const THEME_KEY = "konjunktiv2_theme";
   const known = new Set(JSON.parse(localStorage.getItem(KNOWN_KEY) || "[]"));
-
   const cats = ["Alle", ...Array.from(new Set(CARDS.map(c => c.cat)))];
-  let activeCat = "Alle";
-  let deck = [];      // array of indices into CARDS
-  let pos = 0;
-  let flipped = false;
+  let activeCat = "Alle", deck = [], pos = 0, flipped = false;
 
-  // ---- Elements ------------------------------------------------------------
   const $ = id => document.getElementById(id);
-  const filtersEl = $("filters");
   const card = $("card");
-  const frontText = $("frontText");
-  const backAnswer = $("backAnswer");
-  const backExplain = $("backExplain");
-  const backEnglish = $("backEnglish");
-  const enBtn = $("enBtn");
-  const frontTag = $("frontTag");
-  const backTag = $("backTag");
-  const countEl = $("count");
-  const knownEl = $("known");
-  const barFill = $("barFill");
 
-  // ---- Deck helpers --------------------------------------------------------
+  // ---- Theme ----
+  const root = document.documentElement;
+  function setThemeIcon() {
+    const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    const mode = root.getAttribute("data-theme");
+    const showMoon = mode === "dark" || (mode === "auto" && dark);
+    $("themeIcon").innerHTML = showMoon
+      ? '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'
+      : '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>';
+  }
+  (function initTheme(){
+    const saved = localStorage.getItem(THEME_KEY);
+    if (saved) root.setAttribute("data-theme", saved);
+    setThemeIcon();
+  })();
+  $("themeBtn").addEventListener("click", () => {
+    const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    const cur = root.getAttribute("data-theme");
+    const isDark = cur === "dark" || (cur === "auto" && dark);
+    const next = isDark ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    localStorage.setItem(THEME_KEY, next);
+    setThemeIcon();
+  });
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", setThemeIcon);
+
+  // ---- Deck ----
   function buildDeck() {
     deck = CARDS.map((_, i) => i).filter(i => activeCat === "Alle" || CARDS[i].cat === activeCat);
-    pos = 0;
-    flipped = false;
+    pos = 0; flipped = false;
   }
-
   function shuffleDeck() {
     for (let i = deck.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [deck[i], deck[j]] = [deck[j], deck[i]];
     }
-    pos = 0;
-    flipped = false;
-    render();
+    pos = 0; flipped = false; render();
   }
+  const saveKnown = () => localStorage.setItem(KNOWN_KEY, JSON.stringify([...known]));
 
-  function saveKnown() {
-    localStorage.setItem(KNOWN_KEY, JSON.stringify(Array.from(known)));
-  }
-
-  // ---- Render --------------------------------------------------------------
+  // ---- Filters ----
   function buildFilters() {
-    filtersEl.innerHTML = "";
+    const el = $("filters"); el.innerHTML = "";
     cats.forEach(c => {
       const b = document.createElement("button");
-      b.className = "chip" + (c === activeCat ? " active" : "");
-      b.textContent = c;
-      b.addEventListener("click", () => {
-        activeCat = c;
-        buildDeck();
-        buildFilters();
-        render();
-      });
-      filtersEl.appendChild(b);
+      b.className = "chip"; b.type = "button"; b.textContent = c;
+      b.setAttribute("aria-pressed", String(c === activeCat));
+      b.addEventListener("click", () => { activeCat = c; buildDeck(); buildFilters(); render(); });
+      el.appendChild(b);
     });
   }
 
+  // ---- Render ----
   function render() {
-    if (deck.length === 0) return;
+    if (!deck.length) return;
     const c = CARDS[deck[pos]];
+    const color = CAT_COLORS[c.cat] || "var(--accent)";
 
     card.classList.toggle("flipped", flipped);
-    frontText.textContent = c.front;
-    frontTag.textContent = c.cat;
-    backTag.textContent = c.cat;
-    backAnswer.textContent = c.back;
-    backExplain.textContent = c.explain;
+    card.setAttribute("aria-label", flipped ? "Karte zeigt Antwort — tippen für Frage" : "Karte umdrehen — Antwort zeigen");
+    $("front").style.setProperty("--cat", color);
+    $("back").style.setProperty("--cat", color);
 
-    // English fallback stays hidden until the user asks for it
-    backEnglish.textContent = c.en || "";
-    backEnglish.classList.remove("show");
-    enBtn.style.display = c.en ? "" : "none";
-    enBtn.textContent = "🇬🇧 Englisch zeigen";
+    $("frontCat").textContent = c.cat;
+    $("backCat").textContent = c.cat;
+    $("promptText").textContent = c.front;
+    $("answerText").textContent = c.back;
+    $("explainText").textContent = c.explain;
 
-    countEl.textContent = "Karte " + (pos + 1) + " / " + deck.length;
-    const learnedInDeck = deck.filter(i => known.has(i)).length;
-    knownEl.textContent = "✓ " + learnedInDeck + " gelernt";
-    barFill.style.width = (deck.length ? (learnedInDeck / deck.length * 100) : 0) + "%";
+    // English fallback: hidden by default, secondary
+    $("englishText").textContent = c.en || "";
+    $("englishBox").classList.remove("show");
+    $("enToggle").style.display = c.en ? "" : "none";
+    $("enToggleLabel").textContent = "Englisch zeigen";
 
-    // highlight known card
-    card.style.opacity = known.has(deck[pos]) ? "0.78" : "1";
+    $("pos").textContent = pos + 1;
+    $("total").textContent = deck.length;
+    const learned = deck.filter(i => known.has(i)).length;
+    $("learned").textContent = "✓ " + learned;
+    const pct = deck.length ? Math.round(learned / deck.length * 100) : 0;
+    $("trackFill").style.width = pct + "%";
+    $("track").setAttribute("aria-valuenow", String(pct));
+
+    card.style.opacity = known.has(deck[pos]) ? ".82" : "1";
   }
 
-  function flip() { flipped = !flipped; render(); }
-  function next() { if (!deck.length) return; pos = (pos + 1) % deck.length; flipped = false; render(); }
-  function prev() { if (!deck.length) return; pos = (pos - 1 + deck.length) % deck.length; flipped = false; render(); }
+  const flip = () => { flipped = !flipped; render(); };
+  const next = () => { if (deck.length){ pos = (pos + 1) % deck.length; flipped = false; render(); } };
+  const prev = () => { if (deck.length){ pos = (pos - 1 + deck.length) % deck.length; flipped = false; render(); } };
+  const markGot   = () => { if (deck.length){ known.add(deck[pos]); saveKnown(); next(); } };
+  const markAgain = () => { if (deck.length){ known.delete(deck[pos]); saveKnown(); next(); } };
 
-  function markGot() {
-    if (!deck.length) return;
-    known.add(deck[pos]);
-    saveKnown();
-    next();
-  }
-  function markAgain() {
-    if (!deck.length) return;
-    known.delete(deck[pos]);
-    saveKnown();
-    next();
-  }
-
-  // ---- Events --------------------------------------------------------------
+  // ---- Events ----
   card.addEventListener("click", flip);
-  enBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    const showing = backEnglish.classList.toggle("show");
-    enBtn.textContent = showing ? "🇬🇧 Englisch verbergen" : "🇬🇧 Englisch zeigen";
+  card.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); flip(); }
   });
-
-  $("flipBtn").addEventListener("click", flip);
+  $("enToggle").addEventListener("click", (e) => {
+    e.stopPropagation();
+    const on = $("englishBox").classList.toggle("show");
+    $("enToggleLabel").textContent = on ? "Englisch verbergen" : "Englisch zeigen";
+  });
+  $("flipBtn") && $("flipBtn").addEventListener("click", flip);
   $("nextBtn").addEventListener("click", next);
   $("prevBtn").addEventListener("click", prev);
   $("shuffleBtn").addEventListener("click", shuffleDeck);
   $("gotBtn").addEventListener("click", markGot);
   $("againBtn").addEventListener("click", markAgain);
-
-  $("resetBtn").addEventListener("click", () => {
-    known.clear();
-    saveKnown();
-    render();
-  });
+  $("resetBtn").addEventListener("click", () => { known.clear(); saveKnown(); render(); });
 
   document.addEventListener("keydown", (e) => {
+    if (e.target.closest("button") && (e.key === " " || e.key === "Enter")) return;
     if (e.key === "ArrowRight") { e.preventDefault(); next(); }
     else if (e.key === "ArrowLeft") { e.preventDefault(); prev(); }
-    else if (e.key === " " || e.key === "ArrowUp") { e.preventDefault(); flip(); }
-    else if (e.key === "s" || e.key === "S") { shuffleDeck(); }
-    else if (e.key === "g" || e.key === "G") { markGot(); }
-    else if (e.key === "n" || e.key === "N") { markAgain(); }
+    else if (e.key === " " || e.key === "ArrowUp") { if (e.target === document.body || e.target === card) { e.preventDefault(); flip(); } }
+    else if (e.key === "s" || e.key === "S") shuffleDeck();
+    else if (e.key === "g" || e.key === "G") markGot();
+    else if (e.key === "n" || e.key === "N") markAgain();
   });
 
-  // ---- Init ----------------------------------------------------------------
-  buildDeck();
-  buildFilters();
-  render();
+  // ---- Init ----
+  buildDeck(); buildFilters(); render();
 })();
 </script>
 </body>
