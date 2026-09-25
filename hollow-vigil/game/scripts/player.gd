@@ -285,8 +285,8 @@ func _set_aim(on: bool) -> void:
 		return
 	aiming = on
 	var tw := create_tween().set_parallel()
-	tw.tween_property(spring, "spring_length", 1.5 if on else 2.6, 0.18)
-	tw.tween_property(spring, "position:x", 0.85 if on else 0.5, 0.18)
+	tw.tween_property(spring, "spring_length", 1.9 if on else 2.6, 0.18)
+	tw.tween_property(spring, "position:x", 1.05 if on else 0.5, 0.18)
 	tw.tween_property(cam, "fov", 52.0 if on else 70.0, 0.18)
 	if on:
 		sway = Vector2.ZERO
